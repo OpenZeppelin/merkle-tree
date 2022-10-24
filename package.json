@@ -1,0 +1,16 @@
+{
+  "name": "@openzeppelin/merkle-tree",
+  "version": "0.1.0",
+  "description": "Utilities to work with merkle trees",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Francisco Giordano <fg@frang.io>",
+  "license": "MIT",
+  "dependencies": {
+    "@ethersproject/abi": "^5.7.0",
+    "ethereum-cryptography": "^1.1.2"
+  }
+}
