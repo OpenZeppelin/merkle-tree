@@ -17,7 +17,11 @@ A "standard" merkle tree has a few characteristics that make it good for on-chai
 - The leaves are the result of ABI encoding a series of values.
 - The leaves are double-hashed to prevent attacks.
 
-The last two points imply that the leaf values of the tree are of the form `keccak256(abi.encodePacked(keccak256(abi.encode(a, b, c))))`.
+The last two points imply that the leaf values of the tree can be computed in Solidity as follows:
+
+```solidity
+bytes32 leaf = keccak256(abi.encodePacked(keccak256(abi.encode(a, b, c))));
+```
 
 ### `StandardMerkleTree.of`
 
