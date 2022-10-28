@@ -7,8 +7,8 @@ const hashPair = (a: Bytes, b: Bytes) => keccak256(concatBytes(...[a, b].sort(co
 
 const leftChildIndex  = (i: number) => 2 * i + 1;
 const rightChildIndex = (i: number) => 2 * i + 2;
-const parentIndex     = (i: number) => i === 0 ? error('Root has no parent') : Math.floor((i - 1) / 2);
-const siblingIndex    = (i: number) => i === 0 ? error('Root has no siblings') : i - (-1) ** (i % 2);
+const parentIndex     = (i: number) => i > 0 ? Math.floor((i - 1) / 2) : error('Root has no parent');
+const siblingIndex    = (i: number) => i > 0 ? i - (-1) ** (i % 2)     : error('Root has no siblings');
 
 const isTreeNode        = (tree: unknown[], i: number) => i >= 0 && i < tree.length;
 const isInternalNode    = (tree: unknown[], i: number) => isTreeNode(tree, leftChildIndex(i));
