@@ -2,7 +2,7 @@ import { keccak256 } from 'ethereum-cryptography/keccak';
 import { equalsBytes, hexToBytes } from 'ethereum-cryptography/utils';
 import { defaultAbiCoder } from '@ethersproject/abi';
 import { Bytes, compareBytes, hex } from './bytes';
-import { getProof, isValidMerkleTree, makeMerkleTree, processProof, printMerkleTree } from './core';
+import { getProof, isValidMerkleTree, makeMerkleTree, processProof, printMerkleTree, MultiProof, getMultiProof, processMultiProof } from './core';
 import { checkBounds } from './utils/check-bounds';
 
 function standardLeafHash<T extends any[]>(value: T, types: string[]): Bytes {
@@ -74,6 +74,21 @@ export class StandardMerkleTree<T extends any[]> {
       throw new Error('Unable to prove value');
     }
     return proof.map(hex);
+  }
+
+  getMultiProof(valueIndices: number[]): MultiProof<string> {
+    for (const valueIndex of valueIndices) this.validateValue(valueIndex);
+    const treeIndices = valueIndices.map(i => this.values[i]!.treeIndex);
+    const { proofFlags, proof }= getMultiProof(this.tree, treeIndices);
+    const leaves = treeIndices.map(i => this.tree[i]!);
+    const impliedRoot = processMultiProof(leaves, { proofFlags, proof });
+    if (!equalsBytes(impliedRoot, this.tree[0]!)) {
+      throw new Error('Unable to prove values');
+    }
+    return {
+      proofFlags,
+      proof: proof.map(hex),
+    }
   }
 
   private validateValue(valueIndex: number) {

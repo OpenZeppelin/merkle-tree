@@ -9,3 +9,4 @@ t.print();
 
 t.validate();
 t.getProof(0);
+t.getMultiProof([0, 1]);
