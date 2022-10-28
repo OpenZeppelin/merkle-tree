@@ -120,12 +120,12 @@ export function processMultiProof(leaves: Bytes[], multiproof: MultiProof<Bytes>
     throw new Error('Provided leaves and multiproof are not compatible');
   }
 
-  const stack : Bytes[] = leaves.concat(); // copy
-  const proof : Bytes[] = multiproof.proof.concat(); // copy
+  const stack = leaves.concat(); // copy
+  const proof = multiproof.proof.concat(); // copy
 
   for (const flag of multiproof.proofFlags) {
-    const a: Bytes = stack.shift()!;
-    const b: Bytes = flag ? stack.shift()! : proof.shift()!;
+    const a = stack.shift()!;
+    const b = flag ? stack.shift()! : proof.shift()!;
     stack.push(hashPair(a, b));
   }
 
