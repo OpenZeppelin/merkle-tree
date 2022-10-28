@@ -72,11 +72,14 @@ export function getMultiProof(tree: Bytes[], indices: number[]): MultiProof<Byte
   if (indices.length === 0) {
     return { proof: tree.slice(0, 1), proofFlags: [] };
   }
-  if (indices.reduce((lower: number | false, i) => (lower === false || lower > i) ? false : i, -Infinity) == false) {
-    throw new Error('Indices must be sorted in ascending order');
-  }
+
+  let prev = -Infinity;
   for (const i of indices) {
     checkLeafNode(tree, i);
+    if (i < prev) {
+      throw new Error('Indices must be sorted in ascending order');
+    }
+    prev = i;
   }
 
   const stack = indices.concat().reverse(); // copy + reverse
