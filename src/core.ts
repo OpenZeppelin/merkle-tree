@@ -156,7 +156,7 @@ export function isValidMerkleTree(tree: Bytes[]): boolean {
   return tree.length > 0;
 }
 
-export function renderMerkleTree(tree: Bytes[]) {
+export function printMerkleTree(tree: Bytes[]) {
   if (tree.length === 0) {
     throw new Error('Expected non-zero number of nodes');
   }
