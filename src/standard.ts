@@ -57,7 +57,7 @@ export class StandardMerkleTree<T extends any[]> {
     return hex(this.tree[0]!);
   }
 
-  *entries(): Iterator<[number, T]> {
+  *entries(): Iterable<[number, T]> {
     for (const [i, { value }] of this.values.entries()) {
       yield [i, value];
     }
