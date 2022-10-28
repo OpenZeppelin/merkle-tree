@@ -13,6 +13,7 @@ interface StandardMerkleTreeData<T extends any[]> {
   tree: string[];
   values: {
     value: T;
+    hash: Bytes;
     treeIndex: number;
   }[];
   leafEncoding: string[];
@@ -20,15 +21,16 @@ interface StandardMerkleTreeData<T extends any[]> {
 
 export class StandardMerkleTree<T extends any[]> {
   static of<T extends any[]>(values: T[], leafEncoding: string[]) {
-    const hashedValues = values
-      .map((value, valueIndex) => ({ value, valueIndex, hash: standardLeafHash(value, leafEncoding) }))
-      .sort((a, b) => compareBytes(a.hash, b.hash));
-    const indexedValues = values.map(value => ({ value, treeIndex: 0 }));
+    const hashedValues = values.map((value, valueIndex) => ({
+      value,
+      hash: standardLeafHash(value, leafEncoding),
+      treeIndex: 2 * values.length - valueIndex - 2,
+    }));
+
+    // Merkle tree of the hashed leaves
     const tree = makeMerkleTree(hashedValues.map(v => v.hash));
-    for (const [leafIndex, { valueIndex }] of hashedValues.entries()) {
-      indexedValues[valueIndex]!.treeIndex = tree.length - 1 - leafIndex;
-    }
-    return new StandardMerkleTree(tree, indexedValues, leafEncoding);
+
+    return new StandardMerkleTree(tree, hashedValues, leafEncoding);
   }
 
   static load<T extends any[]>(data: StandardMerkleTreeData<T>): StandardMerkleTree<T> {
@@ -37,7 +39,7 @@ export class StandardMerkleTree<T extends any[]> {
 
   private constructor(
     private readonly tree: Bytes[],
-    private readonly values: { value: T, treeIndex: number }[],
+    private readonly values: { value: T, treeIndex: number, hash: Bytes }[],
     private readonly leafEncoding: string[],
   ) {}
 
@@ -79,7 +81,7 @@ export class StandardMerkleTree<T extends any[]> {
   getMultiProof(valueIndices: number[]): MultiProof<string> {
     for (const valueIndex of valueIndices) this.validateValue(valueIndex);
     const treeIndices = valueIndices.map(i => this.values[i]!.treeIndex);
-    const { proofFlags, proof }= getMultiProof(this.tree, treeIndices);
+    const { proofFlags, proof } = getMultiProof(this.tree, treeIndices);
     const leaves = treeIndices.map(i => this.tree[i]!);
     const impliedRoot = processMultiProof(leaves, { proofFlags, proof });
     if (!equalsBytes(impliedRoot, this.tree[0]!)) {

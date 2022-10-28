@@ -73,34 +73,34 @@ export function getMultiProof(tree: Bytes[], indices: number[]): MultiProof<Byte
     return { proof: tree.slice(0, 1), proofFlags: [] };
   }
 
-  let prev = -Infinity;
+  let prev = +Infinity;
   for (const i of indices) {
     checkLeafNode(tree, i);
-    if (i < prev) {
-      throw new Error('Indices must be sorted in ascending order');
+    if (i > prev) {
+      throw new Error('Indices must be sorted in descending order');
     }
     prev = i;
   }
 
-  const stack = indices.concat().reverse(); // copy + reverse
+  const stack = indices.concat(); // copy
   const proof = [];
   const proofFlags = [];
 
-  let j = stack.pop()!;
-
-  while (j > 0) {
+  while (stack.length > 0) {
+    const j = stack.shift()!; // take from the beginning
     const s = siblingIndex(j);
     const p = parentIndex(j);
-    const k = stack.pop() ?? -Infinity;
+    const k = stack[0] ?? -Infinity;
 
     if (s === k) {
-      proofFlags.push(false);
-      j = p;
-    } else {
       proofFlags.push(true);
+      stack.shift(); // consume from the stack
+    } else {
+      proofFlags.push(false);
       proof.push(tree[s]!);
-      stack.push(Math.min(p, k));
-      j = Math.max(p, k);
+    }
+    if (p !== 0) {
+      stack.push(p);
     }
   }
 
