@@ -167,8 +167,8 @@ export function renderMerkleTree(tree: Bytes[]) {
     const [i, path] = stack.pop()!;
 
     console.log(
-      path.slice(0, -1).map(p => ['  ', '│ '][p]).join('') +
-      path.slice(-1).map(p => ['└ ', '├ '][p]).join('') +
+      path.slice(0, -1).map(p => ['   ', '│  '][p]).join('') +
+      path.slice(-1).map(p => ['└─ ', '├─ '][p]).join('') +
       i + ') ' +
       bytesToHex(tree[i]!)
     );
