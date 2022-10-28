@@ -70,7 +70,7 @@ export interface MultiProof<T> {
 
 export function getMultiProof(tree: Bytes[], indices: number[]): MultiProof<Bytes> {
   if (indices.length === 0) {
-    throw new Error('Expected at least one index to prove');
+    return { proof: tree.slice(0, 1), proofFlags: [] };
   }
   if (indices.reduce((lower: number | false, i) => (lower === false || lower > i) ? false : i, -Infinity) == false) {
     throw new Error('Indices must be sorted in ascending order');
