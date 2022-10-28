@@ -15,10 +15,10 @@ const isInternalNode    = (tree: unknown[], i: number) => isTreeNode(tree, leftC
 const isLeafNode        = (tree: unknown[], i: number) => isTreeNode(tree, i) && !isInternalNode(tree, i);
 const isValidMerkleNode = (node: Bytes) => node instanceof Uint8Array && node.length === 32;
 
-const checkTreeNode        = (tree: unknown[], i: number) : void => { isTreeNode(tree, i)     || revert('Index is not in tree'); }
-const checkInternalNode    = (tree: unknown[], i: number) : void => { isInternalNode(tree, i) || revert('Index is not an internal tree node'); }
-const checkLeafNode        = (tree: unknown[], i: number) : void => { isLeafNode(tree, i)     || revert('Index is not a leaf'); }
-const checkValidMerkleNode = (node: Bytes)                : void => { isValidMerkleNode(node) || revert('Merkle tree nodes must be Uint8Array of length 32'); }
+const checkTreeNode        = (tree: unknown[], i: number) => void (isTreeNode(tree, i)     || revert('Index is not in tree'));
+const checkInternalNode    = (tree: unknown[], i: number) => void (isInternalNode(tree, i) || revert('Index is not an internal tree node'));
+const checkLeafNode        = (tree: unknown[], i: number) => void (isLeafNode(tree, i)     || revert('Index is not a leaf'));
+const checkValidMerkleNode = (node: Bytes)                => void (isValidMerkleNode(node) || revert('Merkle tree nodes must be Uint8Array of length 32'));
 
 export function makeMerkleTree(leaves: Bytes[]): Bytes[] {
   if (leaves.length === 0) {
