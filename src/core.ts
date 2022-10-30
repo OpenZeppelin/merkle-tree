@@ -1,24 +1,24 @@
 import { keccak256 } from 'ethereum-cryptography/keccak';
 import { concatBytes, utf8ToBytes, bytesToHex, equalsBytes } from 'ethereum-cryptography/utils';
 import { Bytes, compareBytes, hex } from './bytes';
-import { error } from './utils/error';
+import { throwError } from './utils/throw-error';
 
 const hashPair = (a: Bytes, b: Bytes) => keccak256(concatBytes(...[a, b].sort(compareBytes)));
 
 const leftChildIndex  = (i: number) => 2 * i + 1;
 const rightChildIndex = (i: number) => 2 * i + 2;
-const parentIndex     = (i: number) => i > 0 ? Math.floor((i - 1) / 2) : error('Root has no parent');
-const siblingIndex    = (i: number) => i > 0 ? i - (-1) ** (i % 2)     : error('Root has no siblings');
+const parentIndex     = (i: number) => i > 0 ? Math.floor((i - 1) / 2) : throwError('Root has no parent');
+const siblingIndex    = (i: number) => i > 0 ? i - (-1) ** (i % 2)     : throwError('Root has no siblings');
 
 const isTreeNode        = (tree: unknown[], i: number) => i >= 0 && i < tree.length;
 const isInternalNode    = (tree: unknown[], i: number) => isTreeNode(tree, leftChildIndex(i));
 const isLeafNode        = (tree: unknown[], i: number) => isTreeNode(tree, i) && !isInternalNode(tree, i);
 const isValidMerkleNode = (node: Bytes) => node instanceof Uint8Array && node.length === 32;
 
-const checkTreeNode        = (tree: unknown[], i: number) => void (isTreeNode(tree, i)     || error('Index is not in tree'));
-const checkInternalNode    = (tree: unknown[], i: number) => void (isInternalNode(tree, i) || error('Index is not an internal tree node'));
-const checkLeafNode        = (tree: unknown[], i: number) => void (isLeafNode(tree, i)     || error('Index is not a leaf'));
-const checkValidMerkleNode = (node: Bytes)                => void (isValidMerkleNode(node) || error('Merkle tree nodes must be Uint8Array of length 32'));
+const checkTreeNode        = (tree: unknown[], i: number) => void (isTreeNode(tree, i)     || throwError('Index is not in tree'));
+const checkInternalNode    = (tree: unknown[], i: number) => void (isInternalNode(tree, i) || throwError('Index is not an internal tree node'));
+const checkLeafNode        = (tree: unknown[], i: number) => void (isLeafNode(tree, i)     || throwError('Index is not a leaf'));
+const checkValidMerkleNode = (node: Bytes)                => void (isValidMerkleNode(node) || throwError('Merkle tree nodes must be Uint8Array of length 32'));
 
 export function makeMerkleTree(leaves: Bytes[]): Bytes[] {
   if (leaves.length === 0) {

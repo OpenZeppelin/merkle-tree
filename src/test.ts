@@ -1,17 +1,19 @@
 import { StandardMerkleTree } from './standard';
 
-const t = StandardMerkleTree.of(
-  'abcdef'.split('').map(c => [c]),
-  ['string'],
-);
+const l = 'abcdef'.split('').map(c => [c]);
+const t = StandardMerkleTree.of(l, ['string']);
 
 t.print();
-
 t.validate();
-t.getProof(0);
-t.getMultiProof([]);
-t.getMultiProof([0, 1]);
-t.getMultiProof([0, 1, 5]);
-t.getMultiProof([1, 3, 4, 5]);
-t.getMultiProof([0, 2, 4, 5]);
-t.getMultiProof([0, 1, 2, 3, 4, 5]);
+
+// proof all leafs individually
+for (const [id] of l.entries()) {
+  t.getProof(id);
+  t.getProof(l[id]!);
+}
+
+// proof sets of leaves
+for (const ids of [[], [0, 1], [0, 1, 5], [1, 3, 4, 5], [0, 2, 4, 5], [0, 1, 2, 3, 4, 5]]) {
+  t.getMultiProof(ids);
+  t.getMultiProof(ids.map(i => l[i]!));
+}

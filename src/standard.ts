@@ -72,24 +72,35 @@ export class StandardMerkleTree<T extends any[]> {
     }
   }
 
-  getProof(valueIndex: number): string[] {
+  leafLookup(leaf: T): number {
+    const hash = standardLeafHash(leaf, this.leafEncoding);
+    const index = this.values.findIndex(value => equalsBytes(value.hash, hash));
+    if (index == -1) {
+      throw new Error('Leaf is not in tree');
+    }
+    return index;
+  }
+
+  getProof(leaf: number | T): string[] {
+    const valueIndex = typeof(leaf) === 'number' ? leaf : this.leafLookup(leaf);
     this.validateValue(valueIndex);
     const { treeIndex } = this.values[valueIndex]!;
     const proof = getProof(this.tree, treeIndex);
-    const leaf = this.tree[treeIndex]!;
-    const impliedRoot = processProof(leaf, proof);
+    const hash = this.tree[treeIndex]!;
+    const impliedRoot = processProof(hash, proof);
     if (!equalsBytes(impliedRoot, this.tree[0]!)) {
       throw new Error('Unable to prove value');
     }
     return proof.map(hex);
   }
 
-  getMultiProof(valueIndices: number[]): MultiProof<string> {
+  getMultiProof(leaves: (number | T)[]): MultiProof<string> {
+    const valueIndices = leaves.map(leaf => typeof(leaf) === 'number' ? leaf : this.leafLookup(leaf));
     for (const valueIndex of valueIndices) this.validateValue(valueIndex);
     const treeIndices = valueIndices.map(i => this.values[i]!.treeIndex);
     const { proofFlags, proof } = getMultiProof(this.tree, treeIndices);
-    const leaves = treeIndices.map(i => this.tree[i]!);
-    const impliedRoot = processMultiProof(leaves, { proofFlags, proof });
+    const hashes = treeIndices.map(i => this.tree[i]!);
+    const impliedRoot = processMultiProof(hashes, { proofFlags, proof });
     if (!equalsBytes(impliedRoot, this.tree[0]!)) {
       throw new Error('Unable to prove values');
     }
