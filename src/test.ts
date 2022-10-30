@@ -7,9 +7,9 @@ t.print();
 t.validate();
 
 // proof all leafs individually
-for (const [id] of l.entries()) {
+for (const [id, leaf] of l.entries()) {
   t.getProof(id);
-  t.getProof(l[id]!);
+  t.getProof(leaf);
 }
 
 // proof sets of leaves
