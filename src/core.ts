@@ -42,7 +42,7 @@ export function makeMerkleTree(leaves: Bytes[]): Bytes[] {
 }
 
 export function getProof(tree: Bytes[], index: number): Bytes[] {
-  checkTreeNode(tree, index);
+  checkLeafNode(tree, index);
 
   const proof = [];
 
