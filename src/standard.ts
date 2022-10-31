@@ -104,19 +104,19 @@ export class StandardMerkleTree<T extends any[]> {
     return proof.map(hex);
   }
 
-  getMultiProof(unorderedLeaves: (number | T)[]): MultiProof<string> {
-    const valueIndices = unorderedLeaves.map(leaf => typeof(leaf) === 'number' ? leaf : this.leafLookup(leaf));
+  getMultiProof(leaves: (number | T)[]): MultiProof<string, T> {
+    const valueIndices = leaves.map(leaf => typeof(leaf) === 'number' ? leaf : this.leafLookup(leaf));
     for (const valueIndex of valueIndices) this.validateValue(valueIndex);
     const treeIndices = valueIndices.map(i => this.values[i]!.treeIndex);
-    const { leaves, proof, proofFlags } = getMultiProof(this.tree, treeIndices);
-    const impliedRoot = processMultiProof({ leaves, proof, proofFlags });
+    const proof = getMultiProof(this.tree, treeIndices);
+    const impliedRoot = processMultiProof(proof);
     if (!equalsBytes(impliedRoot, this.tree[0]!)) {
       throw new Error('Unable to prove values');
     }
     return {
-      leaves: leaves.map(hex),
-      proof: proof.map(hex),
-      proofFlags,
+      leaves:     proof.leaves.map(hash => this.values.find(v => equalsBytes(hash, v.hash))!.value),
+      proof:      proof.proof.map(hex),
+      proofFlags: proof.proofFlags,
     }
   }
 
