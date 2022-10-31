@@ -81,6 +81,11 @@ export function getMultiProof(tree: Bytes[], indices: number[]): MultiProof<Byte
   // order indices
   indices.sort((a, b) => b - a);
 
+  // check for duplicate
+  if (indices.slice(1).some((i, p) => i === indices[p])) {
+    throw new Error('Cannot proof duplicated index');
+  }
+
   const stack = indices.concat(); // copy
   const proof = [];
   const proofFlags = [];
