@@ -1,3 +1,4 @@
+import assert from 'assert';
 import { StandardMerkleTree } from './standard';
 
 const characters = (s: string) => {
@@ -32,4 +33,12 @@ describe('standard merkle tree', () => {
   });
 
   it('prints tree representation');
+
+  it('dump and load', () => {
+    const { t } = characters('abcdef');
+    const t2 = StandardMerkleTree.load(t.dump());
+
+    t2.validate();
+    assert.deepStrictEqual(t, t2);
+  })
 });
