@@ -45,22 +45,18 @@ export function getProof(tree: Bytes[], index: number): Bytes[] {
   checkLeafNode(tree, index);
 
   const proof = [];
-
-  for (let j = index; j > 0; j = parentIndex(j)) {
-    proof.push(tree[siblingIndex(j)]!);
+  while (index > 0) {
+    proof.push(tree[siblingIndex(index)]!);
+    index = parentIndex(index);
   }
-
   return proof;
 }
 
 export function processProof(leaf: Bytes, proof: Bytes[]): Bytes {
   checkValidMerkleNode(leaf);
-  let result = leaf;
-  for (const sibling of proof) {
-    checkValidMerkleNode(sibling);
-    result = hashPair(sibling, result);
-  }
-  return result;
+  proof.forEach(checkValidMerkleNode);
+
+  return proof.reduce(hashPair, leaf);
 }
 
 export interface MultiProof<T, L = T> {
@@ -70,18 +66,9 @@ export interface MultiProof<T, L = T> {
 }
 
 export function getMultiProof(tree: Bytes[], indices: number[]): MultiProof<Bytes> {
-  if (indices.length === 0) {
-    return { leaves: [], proof: tree.slice(0, 1), proofFlags: [] };
-  }
-
-  for (const i of indices) {
-    checkLeafNode(tree, i);
-  }
-
-  // order indices
+  indices.forEach(i => checkLeafNode(tree, i));
   indices.sort((a, b) => b - a);
 
-  // check for duplicate
   if (indices.slice(1).some((i, p) => i === indices[p])) {
     throw new Error('Cannot proof duplicated index');
   }
@@ -105,6 +92,10 @@ export function getMultiProof(tree: Bytes[], indices: number[]): MultiProof<Byte
     stack.push(p);
   }
 
+  if (indices.length === 0) {
+    proof.push(tree[0]!);
+  }
+
   return {
     leaves: indices.map(i => tree[i]!),
     proof,
@@ -113,12 +104,8 @@ export function getMultiProof(tree: Bytes[], indices: number[]): MultiProof<Byte
 }
 
 export function processMultiProof(multiproof: MultiProof<Bytes>): Bytes {
-  for (const leaf of multiproof.leaves) {
-    checkValidMerkleNode(leaf);
-  }
-  for (const sibling of multiproof.proof) {
-    checkValidMerkleNode(sibling);
-  }
+  multiproof.leaves.forEach(checkValidMerkleNode);
+  multiproof.proof.forEach(checkValidMerkleNode);
 
   if (multiproof.proof.length < multiproof.proofFlags.filter(b => !b).length) {
     throw new Error('Invalid multiproof format');
