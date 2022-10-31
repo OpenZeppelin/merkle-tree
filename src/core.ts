@@ -63,8 +63,8 @@ export function processProof(leaf: Bytes, proof: Bytes[]): Bytes {
   return result;
 }
 
-export interface MultiProof<T> {
-  leaves: T[];
+export interface MultiProof<T, L = T> {
+  leaves: L[];
   proof: T[];
   proofFlags: boolean[];
 }
