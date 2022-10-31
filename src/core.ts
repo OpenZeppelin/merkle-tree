@@ -21,6 +21,8 @@ const checkLeafNode        = (tree: unknown[], i: number) => void (isLeafNode(tr
 const checkValidMerkleNode = (node: Bytes)                => void (isValidMerkleNode(node) || throwError('Merkle tree nodes must be Uint8Array of length 32'));
 
 export function makeMerkleTree(leaves: Bytes[]): Bytes[] {
+  leaves.forEach(checkValidMerkleNode);
+
   if (leaves.length === 0) {
     throw new Error('Expected non-zero number of leaves');
   }
@@ -28,14 +30,13 @@ export function makeMerkleTree(leaves: Bytes[]): Bytes[] {
   const tree = new Array<Bytes>(2 * leaves.length - 1);
 
   for (const [i, leaf] of leaves.entries()) {
-    checkValidMerkleNode(leaf);
     tree[tree.length - 1 - i] = leaf;
   }
-
   for (let i = tree.length - 1 - leaves.length; i >= 0; i--) {
-    const l = tree[leftChildIndex(i)]!;
-    const r = tree[rightChildIndex(i)]!;
-    tree[i] = hashPair(l, r);
+    tree[i] = hashPair(
+      tree[leftChildIndex(i)]!,
+      tree[rightChildIndex(i)]!,
+    );
   }
 
   return tree;
