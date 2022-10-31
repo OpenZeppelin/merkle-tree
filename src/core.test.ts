@@ -29,7 +29,6 @@ describe('properties', () => {
   it('a subset of leaves of a tree are provable', () => {
     fc.assert(
       fc.property(leavesAndIndices, ([leaves, leafIndices]) => {
-        fc.pre(leaves.length > 1); // TODO: fix test for leaves.length = 1
         const tree = makeMerkleTree(leaves);
         const root = tree[0];
         if (root === undefined) return false;

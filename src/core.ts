@@ -86,7 +86,7 @@ export function getMultiProof(tree: Bytes[], indices: number[]): MultiProof<Byte
   const proof = [];
   const proofFlags = [];
 
-  while (stack.length > 0) {
+  while (stack.length > 0 && stack[0]! > 0) {
     const j = stack.shift()!; // take from the beginning
     const s = siblingIndex(j);
     const p = parentIndex(j);
@@ -98,9 +98,7 @@ export function getMultiProof(tree: Bytes[], indices: number[]): MultiProof<Byte
       proofFlags.push(false);
       proof.push(tree[s]!);
     }
-    if (p !== 0) {
-      stack.push(p);
-    }
+    stack.push(p);
   }
 
   return { proof, proofFlags };
