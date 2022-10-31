@@ -119,8 +119,8 @@ export class StandardMerkleTree<T extends any[]> {
     for (const valueIndex of valueIndices) this.validateValue(valueIndex);
 
     // rebuild tree indices and generate proof
-    const indexes = valueIndices.map(i => this.values[i]!.treeIndex);
-    const proof = getMultiProof(this.tree, indexes);
+    const indices = valueIndices.map(i => this.values[i]!.treeIndex);
+    const proof = getMultiProof(this.tree, indices);
 
     // check proof
     const impliedRoot = processMultiProof(proof);
