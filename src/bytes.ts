@@ -1,4 +1,4 @@
-import { bytesToHex } from "ethereum-cryptography/utils";
+import { bytesToHex } from 'ethereum-cryptography/utils';
 
 export type Bytes = Uint8Array;
 
