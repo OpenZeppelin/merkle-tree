@@ -102,7 +102,7 @@ export class StandardMerkleTree<T extends any[]> {
     const valueIndex = typeof(leaf) === 'number' ? leaf : this.leafLookup(leaf);
     this.validateValue(valueIndex);
 
-    // rebuilt tree index and generate proof
+    // rebuild tree index and generate proof
     const { treeIndex } = this.values[valueIndex]!;
     const proof = getProof(this.tree, treeIndex);
 
@@ -122,7 +122,7 @@ export class StandardMerkleTree<T extends any[]> {
     const valueIndices = leaves.map(leaf => typeof(leaf) === 'number' ? leaf : this.leafLookup(leaf));
     for (const valueIndex of valueIndices) this.validateValue(valueIndex);
 
-    // rebuilt tree indexes and generate proof
+    // rebuild tree indices and generate proof
     const indexes = valueIndices.map(i => this.values[i]!.treeIndex);
     const proof = getMultiProof(this.tree, indexes);
 
