@@ -1,5 +1,5 @@
 {
   "extension": ["ts"],
   "spec": "src/**/*.test.ts",
-  "require": "esbuild-register"
+  "require": "ts-node/register"
 }
