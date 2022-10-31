@@ -84,7 +84,7 @@ export class StandardMerkleTree<T extends any[]> {
     }
   }
 
-  hashLeaf(leaf: T): string {
+  leafHash(leaf: T): string {
     return hex(standardLeafHash(leaf, this.leafEncoding));
   }
 
