@@ -69,10 +69,12 @@ Returns a proof for the `i`th value in the tree. Indices refer to the position o
 ### `tree.getMultiProof`
 
 ```ts
-const { proof, proofFlags } = tree.getMultiProof([i0, i1, ...])
+const { leaves, proof, proofFlags } = tree.getMultiProof([i0, i1, ...])
 ```
 
 Returns a multiproof for the values at indices `i0, i1, ...`. Indices refer to the position of the values in the array from which the tree was constructed.
+
+The multiproof returned contains an array with the leaves that are being proven. This array may be in a different order than that given by `i0, i1, ...`! The order returned is significant, as it is that in which the leaves must be submitted for verification (e.g., in a smart contract).
 
 ### `tree.entries`
 
