@@ -21,6 +21,8 @@ const checkLeafNode        = (tree: unknown[], i: number) => void (isLeafNode(tr
 const checkValidMerkleNode = (node: Bytes)                => void (isValidMerkleNode(node) || throwError('Merkle tree nodes must be Uint8Array of length 32'));
 
 export function makeMerkleTree(leaves: Bytes[]): Bytes[] {
+  leaves.forEach(checkValidMerkleNode);
+
   if (leaves.length === 0) {
     throw new Error('Expected non-zero number of leaves');
   }
@@ -28,14 +30,13 @@ export function makeMerkleTree(leaves: Bytes[]): Bytes[] {
   const tree = new Array<Bytes>(2 * leaves.length - 1);
 
   for (const [i, leaf] of leaves.entries()) {
-    checkValidMerkleNode(leaf);
     tree[tree.length - 1 - i] = leaf;
   }
-
   for (let i = tree.length - 1 - leaves.length; i >= 0; i--) {
-    const l = tree[leftChildIndex(i)]!;
-    const r = tree[rightChildIndex(i)]!;
-    tree[i] = hashPair(l, r);
+    tree[i] = hashPair(
+      tree[leftChildIndex(i)]!,
+      tree[rightChildIndex(i)]!,
+    );
   }
 
   return tree;
@@ -45,41 +46,32 @@ export function getProof(tree: Bytes[], index: number): Bytes[] {
   checkLeafNode(tree, index);
 
   const proof = [];
-
-  for (let j = index; j > 0; j = parentIndex(j)) {
-    proof.push(tree[siblingIndex(j)]!);
+  while (index > 0) {
+    proof.push(tree[siblingIndex(index)]!);
+    index = parentIndex(index);
   }
-
   return proof;
 }
 
 export function processProof(leaf: Bytes, proof: Bytes[]): Bytes {
   checkValidMerkleNode(leaf);
-  let result = leaf;
-  for (const sibling of proof) {
-    checkValidMerkleNode(sibling);
-    result = hashPair(sibling, result);
-  }
-  return result;
+  proof.forEach(checkValidMerkleNode);
+
+  return proof.reduce(hashPair, leaf);
 }
 
-export interface MultiProof<T> {
+export interface MultiProof<T, L = T> {
+  leaves: L[];
   proof: T[];
   proofFlags: boolean[];
 }
 
 export function getMultiProof(tree: Bytes[], indices: number[]): MultiProof<Bytes> {
-  if (indices.length === 0) {
-    return { proof: tree.slice(0, 1), proofFlags: [] };
-  }
+  indices.forEach(i => checkLeafNode(tree, i));
+  indices.sort((a, b) => b - a);
 
-  let prev = +Infinity;
-  for (const i of indices) {
-    checkLeafNode(tree, i);
-    if (i > prev) {
-      throw new Error('Indices must be sorted in descending order');
-    }
-    prev = i;
+  if (indices.slice(1).some((i, p) => i === indices[p])) {
+    throw new Error('Cannot proof duplicated index');
   }
 
   const stack = indices.concat(); // copy
@@ -101,26 +93,30 @@ export function getMultiProof(tree: Bytes[], indices: number[]): MultiProof<Byte
     stack.push(p);
   }
 
-  return { proof, proofFlags };
+  if (indices.length === 0) {
+    proof.push(tree[0]!);
+  }
+
+  return {
+    leaves: indices.map(i => tree[i]!),
+    proof,
+    proofFlags,
+  };
 }
 
-export function processMultiProof(leaves: Bytes[], multiproof: MultiProof<Bytes>): Bytes {
-  for (const leaf of leaves) {
-    checkValidMerkleNode(leaf);
-  }
-  for (const sibling of multiproof.proof) {
-    checkValidMerkleNode(sibling);
-  }
+export function processMultiProof(multiproof: MultiProof<Bytes>): Bytes {
+  multiproof.leaves.forEach(checkValidMerkleNode);
+  multiproof.proof.forEach(checkValidMerkleNode);
 
   if (multiproof.proof.length < multiproof.proofFlags.filter(b => !b).length) {
     throw new Error('Invalid multiproof format');
   }
 
-  if (leaves.length + multiproof.proof.length !== multiproof.proofFlags.length + 1) {
+  if (multiproof.leaves.length + multiproof.proof.length !== multiproof.proofFlags.length + 1) {
     throw new Error('Provided leaves and multiproof are not compatible');
   }
 
-  const stack = leaves.concat(); // copy
+  const stack = multiproof.leaves.concat(); // copy
   const proof = multiproof.proof.concat(); // copy
 
   for (const flag of multiproof.proofFlags) {
@@ -153,17 +149,19 @@ export function isValidMerkleTree(tree: Bytes[]): boolean {
   return tree.length > 0;
 }
 
-export function printMerkleTree(tree: Bytes[]) {
+export function renderMerkleTree(tree: Bytes[]): string {
   if (tree.length === 0) {
     throw new Error('Expected non-zero number of nodes');
   }
 
   const stack: [number, number[]][] = [[0, []]];
 
+  const lines = [];
+
   while (stack.length > 0) {
     const [i, path] = stack.pop()!;
 
-    console.log(
+    lines.push(
       path.slice(0, -1).map(p => ['   ', '│  '][p]).join('') +
       path.slice(-1).map(p => ['└─ ', '├─ '][p]).join('') +
       i + ') ' +
@@ -175,4 +173,6 @@ export function printMerkleTree(tree: Bytes[]) {
       stack.push([leftChildIndex(i), path.concat(1)]);
     }
   }
+
+  return lines.join('\n');
 }

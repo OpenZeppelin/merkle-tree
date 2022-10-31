@@ -8,9 +8,9 @@ const leaves = fc.array(leaf, { minLength: 1 });
 const leavesAndIndex = leaves.chain(xs => fc.tuple(fc.constant(xs), fc.nat({ max: xs.length - 1 })));
 const leavesAndIndices = leaves.chain(xs => fc.tuple(fc.constant(xs), fc.uniqueArray(fc.nat({ max: xs.length - 1 }))));
 
-fc.configureGlobal({ numRuns: 10000 });
+fc.configureGlobal({ numRuns: process.env.CI ? 10000 : 100 });
 
-describe('properties', () => {
+describe('core properties', () => {
   it('a leaf of a tree is provable', () => {
     fc.assert(
       fc.property(leavesAndIndex, ([leaves, leafIndex]) => {
@@ -32,11 +32,11 @@ describe('properties', () => {
         const tree = makeMerkleTree(leaves);
         const root = tree[0];
         if (root === undefined) return false;
-        leafIndices.sort((a, b) => a - b);
         const treeIndices = leafIndices.map(i => tree.length - 1 - i);
         const proof = getMultiProof(tree, treeIndices);
-        const provenLeaves = leafIndices.map(i => leaves[i]!);
-        const impliedRoot = processMultiProof(provenLeaves, proof);
+        if (leafIndices.length !== proof.leaves.length) return false;
+        if (leafIndices.some(i => !proof.leaves.includes(leaves[i]!))) return false;
+        const impliedRoot = processMultiProof(proof);
         return equalsBytes(root, impliedRoot);
       }),
     );
