@@ -26,23 +26,18 @@ export class StandardMerkleTree<T extends any[]> {
   ) {}
 
   static of<T extends any[]>(values: T[], leafEncoding: string[]) {
-    const orderedHashedValues = values
-      .map(value => ({
-        value,
-        hash: standardLeafHash(value, leafEncoding),
-      }))
+    const hashedValues = values
+      .map((value, valueIndex) => ({ value, valueIndex, hash: standardLeafHash(value, leafEncoding) }))
       .sort((a, b) => compareBytes(a.hash, b.hash));
 
-    const orderedIndexedValues = orderedHashedValues
-      .map(({ value }, valueIndex) => ({
-        value,
-        treeIndex: 2 * values.length - valueIndex - 2,
-      }));
+    const tree = makeMerkleTree(hashedValues.map(v => v.hash));
 
-    // Merkle tree of the hashed leaves
-    const tree = makeMerkleTree(orderedHashedValues.map(v => v.hash));
+    const indexedValues = values.map(value => ({ value, treeIndex: 0 }));
+    for (const [leafIndex, { valueIndex }] of hashedValues.entries()) {
+      indexedValues[valueIndex]!.treeIndex = tree.length - leafIndex - 1;
+    }
 
-    return new StandardMerkleTree(tree, orderedIndexedValues, leafEncoding);
+    return new StandardMerkleTree(tree, indexedValues, leafEncoding);
   }
 
   static load<T extends any[]>(data: StandardMerkleTreeData<T>): StandardMerkleTree<T> {
@@ -91,10 +86,11 @@ export class StandardMerkleTree<T extends any[]> {
   leafLookup(leaf: T): number {
     const hash = standardLeafHash(leaf, this.leafEncoding);
     const treeIndex = this.tree.findIndex(node => equalsBytes(node, hash));
-    if (treeIndex == -1) {
+    const leafIndex = this.values.findIndex(value => treeIndex == value.treeIndex);
+    if (leafIndex == -1) {
       throw new Error('Leaf is not in tree');
     }
-    return this.tree.length - treeIndex - 1;
+    return leafIndex;
   }
 
   getProof(leaf: number | T): string[] {
