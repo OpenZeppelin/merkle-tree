@@ -4,8 +4,14 @@
   "description": "Utilities to work with merkle trees",
   "main": "dist/index.js",
   "scripts": {
+    "prepare": "tsc",
     "test": "mocha"
   },
+  "files": [
+    "/src",
+    "/dist",
+    "!**/*.tsbuildinfo"
+  ],
   "keywords": [],
   "author": "Francisco Giordano <fg@frang.io>",
   "license": "MIT",
