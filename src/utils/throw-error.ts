@@ -1,3 +1,3 @@
-export function throwError(message?: string, opts?: ErrorOptions): never {
-  throw new Error(message, opts);
+export function throwError(message?: string): never {
+  throw new Error(message);
 }

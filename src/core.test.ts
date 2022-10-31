@@ -8,9 +8,9 @@ const leaves = fc.array(leaf, { minLength: 1 });
 const leavesAndIndex = leaves.chain(xs => fc.tuple(fc.constant(xs), fc.nat({ max: xs.length - 1 })));
 const leavesAndIndices = leaves.chain(xs => fc.tuple(fc.constant(xs), fc.uniqueArray(fc.nat({ max: xs.length - 1 }))));
 
-fc.configureGlobal({ numRuns: 10000 });
+fc.configureGlobal({ numRuns: process.env.CI ? 10000 : 100 });
 
-describe('properties', () => {
+describe('core properties', () => {
   it('a leaf of a tree is provable', () => {
     fc.assert(
       fc.property(leavesAndIndex, ([leaves, leafIndex]) => {
