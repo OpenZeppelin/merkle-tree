@@ -1,7 +1,7 @@
 import { keccak256 } from 'ethereum-cryptography/keccak';
 import { equalsBytes, hexToBytes } from 'ethereum-cryptography/utils';
 import { defaultAbiCoder } from '@ethersproject/abi';
-import { Bytes, compareBytes, hex } from './bytes';
+import { Bytes, hex } from './bytes';
 import { getProof, isValidMerkleTree, makeMerkleTree, processProof, printMerkleTree, MultiProof, getMultiProof, processMultiProof } from './core';
 import { checkBounds } from './utils/check-bounds';
 

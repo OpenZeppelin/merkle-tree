@@ -1,6 +1,6 @@
 import { keccak256 } from 'ethereum-cryptography/keccak';
-import { concatBytes, utf8ToBytes, bytesToHex, equalsBytes } from 'ethereum-cryptography/utils';
-import { Bytes, compareBytes, hex } from './bytes';
+import { concatBytes, bytesToHex, equalsBytes } from 'ethereum-cryptography/utils';
+import { Bytes, compareBytes } from './bytes';
 import { throwError } from './utils/throw-error';
 
 const hashPair = (a: Bytes, b: Bytes) => keccak256(concatBytes(...[a, b].sort(compareBytes)));

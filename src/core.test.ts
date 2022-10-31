@@ -1,5 +1,5 @@
 import fc from 'fast-check';
-import { equalsBytes, hexToBytes } from 'ethereum-cryptography/utils';
+import { equalsBytes } from 'ethereum-cryptography/utils';
 import { makeMerkleTree, getProof, processProof, getMultiProof, processMultiProof } from './core';
 import { hex } from './bytes';
 
