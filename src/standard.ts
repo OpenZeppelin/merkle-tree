@@ -1,7 +1,7 @@
 import { keccak256 } from 'ethereum-cryptography/keccak';
 import { equalsBytes, hexToBytes } from 'ethereum-cryptography/utils';
 import { defaultAbiCoder } from '@ethersproject/abi';
-import { Bytes, hex } from './bytes';
+import { Bytes, compareBytes, hex } from './bytes';
 import { getProof, isValidMerkleTree, makeMerkleTree, processProof, printMerkleTree, MultiProof, getMultiProof, processMultiProof } from './core';
 import { checkBounds } from './utils/check-bounds';
 
@@ -27,11 +27,15 @@ export class StandardMerkleTree<T extends any[]> {
   ) {}
 
   static of<T extends any[]>(values: T[], leafEncoding: string[]) {
-    const hashedValues = values.map((value, valueIndex) => ({
-      value,
-      hash: standardLeafHash(value, leafEncoding),
-      treeIndex: 2 * values.length - valueIndex - 2,
-    }));
+    const hashedValues = values
+      .map(value => ({
+        value,
+        hash: standardLeafHash(value, leafEncoding),
+      }))
+      .sort((a, b) => compareBytes(a.hash, b.hash))
+      .map((value, valueIndex) => Object.assign(value, {
+        treeIndex: 2 * values.length - valueIndex - 2,
+      }));
 
     // Merkle tree of the hashed leaves
     const tree = makeMerkleTree(hashedValues.map(v => v.hash));
@@ -100,19 +104,19 @@ export class StandardMerkleTree<T extends any[]> {
     return proof.map(hex);
   }
 
-  getMultiProof(leaves: (number | T)[]): MultiProof<string> {
-    const valueIndices = leaves.map(leaf => typeof(leaf) === 'number' ? leaf : this.leafLookup(leaf));
+  getMultiProof(unorderedLeaves: (number | T)[]): MultiProof<string> {
+    const valueIndices = unorderedLeaves.map(leaf => typeof(leaf) === 'number' ? leaf : this.leafLookup(leaf));
     for (const valueIndex of valueIndices) this.validateValue(valueIndex);
     const treeIndices = valueIndices.map(i => this.values[i]!.treeIndex);
-    const { proofFlags, proof } = getMultiProof(this.tree, treeIndices);
-    const hashes = treeIndices.map(i => this.tree[i]!);
-    const impliedRoot = processMultiProof(hashes, { proofFlags, proof });
+    const { leaves, proof, proofFlags } = getMultiProof(this.tree, treeIndices);
+    const impliedRoot = processMultiProof({ leaves, proof, proofFlags });
     if (!equalsBytes(impliedRoot, this.tree[0]!)) {
       throw new Error('Unable to prove values');
     }
     return {
-      proofFlags,
+      leaves: leaves.map(hex),
       proof: proof.map(hex),
+      proofFlags,
     }
   }
 

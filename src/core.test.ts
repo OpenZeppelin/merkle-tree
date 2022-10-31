@@ -32,11 +32,11 @@ describe('properties', () => {
         const tree = makeMerkleTree(leaves);
         const root = tree[0];
         if (root === undefined) return false;
-        leafIndices.sort((a, b) => a - b);
         const treeIndices = leafIndices.map(i => tree.length - 1 - i);
         const proof = getMultiProof(tree, treeIndices);
-        const provenLeaves = leafIndices.map(i => leaves[i]!);
-        const impliedRoot = processMultiProof(provenLeaves, proof);
+        if (leafIndices.length !== proof.leaves.length) return false;
+        if (leafIndices.some(i => !proof.leaves.includes(leaves[i]!))) return false;
+        const impliedRoot = processMultiProof(proof);
         return equalsBytes(root, impliedRoot);
       }),
     );

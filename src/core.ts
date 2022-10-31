@@ -64,23 +64,22 @@ export function processProof(leaf: Bytes, proof: Bytes[]): Bytes {
 }
 
 export interface MultiProof<T> {
+  leaves: T[];
   proof: T[];
   proofFlags: boolean[];
 }
 
 export function getMultiProof(tree: Bytes[], indices: number[]): MultiProof<Bytes> {
   if (indices.length === 0) {
-    return { proof: tree.slice(0, 1), proofFlags: [] };
+    return { leaves: [], proof: tree.slice(0, 1), proofFlags: [] };
   }
 
-  let prev = +Infinity;
   for (const i of indices) {
     checkLeafNode(tree, i);
-    if (i > prev) {
-      throw new Error('Indices must be sorted in descending order');
-    }
-    prev = i;
   }
+
+  // order indices
+  indices.sort((a, b) => b - a);
 
   const stack = indices.concat(); // copy
   const proof = [];
@@ -101,11 +100,15 @@ export function getMultiProof(tree: Bytes[], indices: number[]): MultiProof<Byte
     stack.push(p);
   }
 
-  return { proof, proofFlags };
+  return {
+    leaves: indices.map(i => tree[i]!),
+    proof,
+    proofFlags,
+  };
 }
 
-export function processMultiProof(leaves: Bytes[], multiproof: MultiProof<Bytes>): Bytes {
-  for (const leaf of leaves) {
+export function processMultiProof(multiproof: MultiProof<Bytes>): Bytes {
+  for (const leaf of multiproof.leaves) {
     checkValidMerkleNode(leaf);
   }
   for (const sibling of multiproof.proof) {
@@ -116,11 +119,11 @@ export function processMultiProof(leaves: Bytes[], multiproof: MultiProof<Bytes>
     throw new Error('Invalid multiproof format');
   }
 
-  if (leaves.length + multiproof.proof.length !== multiproof.proofFlags.length + 1) {
+  if (multiproof.leaves.length + multiproof.proof.length !== multiproof.proofFlags.length + 1) {
     throw new Error('Provided leaves and multiproof are not compatible');
   }
 
-  const stack = leaves.concat(); // copy
+  const stack = multiproof.leaves.concat(); // copy
   const proof = multiproof.proof.concat(); // copy
 
   for (const flag of multiproof.proofFlags) {
