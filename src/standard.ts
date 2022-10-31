@@ -13,13 +13,19 @@ interface StandardMerkleTreeData<T extends any[]> {
   tree: string[];
   values: {
     value: T;
-    hash: Bytes;
+    hash: string;
     treeIndex: number;
   }[];
   leafEncoding: string[];
 }
 
 export class StandardMerkleTree<T extends any[]> {
+  private constructor(
+    private readonly tree: Bytes[],
+    private readonly values: { value: T, hash: Bytes, treeIndex: number }[],
+    private readonly leafEncoding: string[],
+  ) {}
+
   static of<T extends any[]>(values: T[], leafEncoding: string[]) {
     const hashedValues = values.map((value, valueIndex) => ({
       value,
@@ -34,19 +40,19 @@ export class StandardMerkleTree<T extends any[]> {
   }
 
   static load<T extends any[]>(data: StandardMerkleTreeData<T>): StandardMerkleTree<T> {
-    return new StandardMerkleTree(data.tree.map(hexToBytes), data.values, data.leafEncoding);
+    return new StandardMerkleTree(
+      data.tree.map(hexToBytes),
+      data.values.map(({ value, hash, treeIndex }) => ({ value, hash: hexToBytes(hash), treeIndex })),
+      data.leafEncoding,
+    );
   }
 
-  private constructor(
-    private readonly tree: Bytes[],
-    private readonly values: { value: T, treeIndex: number, hash: Bytes }[],
-    private readonly leafEncoding: string[],
-  ) {}
-
   dump(): StandardMerkleTreeData<T> {
-    const tree = this.tree.map(hex);
-    const { values, leafEncoding } = this;
-    return { tree, values, leafEncoding };
+    return {
+      tree:         this.tree.map(hex),
+      values:       this.values.map(({ value, hash, treeIndex }) => ({ value, hash: hex(hash), treeIndex })),
+      leafEncoding: this.leafEncoding,
+    };
   }
 
   print() {
