@@ -20,7 +20,7 @@ describe('standard merkle tree', () => {
       // getProof internally validates the proof
       const proof1 = t.getProof(id);
       const proof2 = t.getProof(leaf);
-      assert.deepStrictEqual(proof1, proof2);
+      assert.deepEqual(proof1, proof2);
     }
   });
 
@@ -31,7 +31,7 @@ describe('standard merkle tree', () => {
       // getMultiProof internally validates the proof
       const proof1 = t.getMultiProof(ids);
       const proof2 = t.getMultiProof(ids.map(i => l[i]!));
-      assert.deepStrictEqual(proof1, proof2);
+      assert.deepEqual(proof1, proof2);
     }
   });
 
