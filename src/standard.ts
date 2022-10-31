@@ -4,6 +4,7 @@ import { defaultAbiCoder } from '@ethersproject/abi';
 import { Bytes, compareBytes, hex } from './bytes';
 import { getProof, isValidMerkleTree, makeMerkleTree, processProof, renderMerkleTree, MultiProof, getMultiProof, processMultiProof } from './core';
 import { checkBounds } from './utils/check-bounds';
+import { throwError } from './utils/throw-error';
 
 function standardLeafHash<T extends any[]>(value: T, types: string[]): Bytes {
   return keccak256(keccak256(hexToBytes(defaultAbiCoder.encode(types, value))));
@@ -23,6 +24,11 @@ export class StandardMerkleTree<T extends any[]> {
     private readonly tree: Bytes[],
     private readonly values: { value: T, treeIndex: number }[],
     private readonly leafEncoding: string[],
+    private readonly hashLookup: { [hash: string]: number } =
+      Object.fromEntries(values.map((value, valueIndex) => [
+        hex(standardLeafHash(value.value, leafEncoding)),
+        valueIndex,
+      ]))
   ) {}
 
   static of<T extends any[]>(values: T[], leafEncoding: string[]) {
@@ -84,13 +90,7 @@ export class StandardMerkleTree<T extends any[]> {
   }
 
   leafLookup(leaf: T): number {
-    const hash = standardLeafHash(leaf, this.leafEncoding);
-    const treeIndex = this.tree.findIndex(node => equalsBytes(node, hash));
-    const leafIndex = this.values.findIndex(value => treeIndex == value.treeIndex);
-    if (leafIndex == -1) {
-      throw new Error('Leaf is not in tree');
-    }
-    return leafIndex;
+    return this.hashLookup[this.leafHash(leaf)] ?? throwError('Leaf is not in tree');
   }
 
   getProof(leaf: number | T): string[] {
@@ -128,14 +128,9 @@ export class StandardMerkleTree<T extends any[]> {
       throw new Error('Unable to prove values');
     }
 
-    // recover ordered leaves values
-    const hashes         = indexes.map(i => this.tree[i]!);
-    const orderedIndexes = proof.leaves.map(leave => hashes.findIndex(hash => equalsBytes(hash, leave))!);
-    const orderedValues  = orderedIndexes.map(i => this.values[i]!.value);
-
     // return multiproof in hex format
     return {
-      leaves:     orderedValues,
+      leaves:     proof.leaves.map(hash => this.values[this.hashLookup[hex(hash)]!]!.value),
       proof:      proof.proof.map(hex),
       proofFlags: proof.proofFlags,
     }
