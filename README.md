@@ -86,3 +86,11 @@ for (const [i, v] of tree.entries()) {
 ```
 
 Lists the values in the tree along with their indices, which can be used to obtain proofs.
+
+### `tree.render`
+
+```ts
+console.log(tree.render());
+```
+
+Returns a visual representation of the tree that can be useful for debugging.

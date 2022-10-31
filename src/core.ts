@@ -149,17 +149,19 @@ export function isValidMerkleTree(tree: Bytes[]): boolean {
   return tree.length > 0;
 }
 
-export function printMerkleTree(tree: Bytes[]) {
+export function renderMerkleTree(tree: Bytes[]): string {
   if (tree.length === 0) {
     throw new Error('Expected non-zero number of nodes');
   }
 
   const stack: [number, number[]][] = [[0, []]];
 
+  const lines = [];
+
   while (stack.length > 0) {
     const [i, path] = stack.pop()!;
 
-    console.log(
+    lines.push(
       path.slice(0, -1).map(p => ['   ', '│  '][p]).join('') +
       path.slice(-1).map(p => ['└─ ', '├─ '][p]).join('') +
       i + ') ' +
@@ -171,4 +173,6 @@ export function printMerkleTree(tree: Bytes[]) {
       stack.push([leftChildIndex(i), path.concat(1)]);
     }
   }
+
+  return lines.join('\n');
 }

@@ -2,7 +2,7 @@ import { keccak256 } from 'ethereum-cryptography/keccak';
 import { equalsBytes, hexToBytes } from 'ethereum-cryptography/utils';
 import { defaultAbiCoder } from '@ethersproject/abi';
 import { Bytes, compareBytes, hex } from './bytes';
-import { getProof, isValidMerkleTree, makeMerkleTree, processProof, printMerkleTree, MultiProof, getMultiProof, processMultiProof } from './core';
+import { getProof, isValidMerkleTree, makeMerkleTree, processProof, renderMerkleTree, MultiProof, getMultiProof, processMultiProof } from './core';
 import { checkBounds } from './utils/check-bounds';
 
 function standardLeafHash<T extends any[]>(value: T, types: string[]): Bytes {
@@ -61,8 +61,8 @@ export class StandardMerkleTree<T extends any[]> {
     };
   }
 
-  print() {
-    printMerkleTree(this.tree);
+  render() {
+    return renderMerkleTree(this.tree);
   }
 
   get root(): string {
