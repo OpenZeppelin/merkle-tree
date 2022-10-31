@@ -171,8 +171,8 @@ export function printMerkleTree(tree: Bytes[]) {
     );
 
     if (rightChildIndex(i) < tree.length) {
-      stack.push([leftChildIndex(i), path.concat(0)]);
-      stack.push([rightChildIndex(i), path.concat(1)]);
+      stack.push([rightChildIndex(i), path.concat(0)]);
+      stack.push([leftChildIndex(i), path.concat(1)]);
     }
   }
 }
