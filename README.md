@@ -10,27 +10,30 @@
 npm install @openzeppelin/merkle-tree
 ```
 
-Place the values for the merkle tree in `values.json`.
-
-```json
-[
-  ["0x1111111111111111111111111111111111111111", "5000000000000000000"],
-  ["0x2222222222222222222222222222222222222222", "2500000000000000000"]
-]
-```
-
-Write a script to build the merkle tree. Print the merkle root, which can be published on chain, and write a file describing the tree to distribute to users. Note the value encoding is `address, uint256` in sync with the values in the file.
-
 ```js
 import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
 import fs from "fs";
 
-const values = JSON.parse(fs.readFileSync("values.json"));
+// (1)
+const values = [
+  ["0x1111111111111111111111111111111111111111", "5000000000000000000"],
+  ["0x2222222222222222222222222222222222222222", "2500000000000000000"]
+];
+
+// (2)
 const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
 
+// (3)
 console.log('Merkle Root:', tree.root);
+
+// (4)
 fs.writeFileSync("tree.json", JSON.stringify(tree.dump()));
 ```
+
+1. Get the values to include in the tree. (Note: Consider reading them from a file.)
+2. Build the merkle tree. Set the encoding to match the values.
+3. Print the merkle root. You will probably publish this value on chain in a smart contract.
+4. Write a file that describes the tree. You will distribute this to users so they can generate proofs for values in the tree.
 
 ## API & Examples
 
