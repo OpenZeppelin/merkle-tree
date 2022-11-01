@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "prepare": "tsc",
-    "test": "mocha"
+    "test": "mocha",
+    "coverage": "c8 npm run test"
   },
   "files": [
     "/src",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@types/mocha": "^10.0.0",
+    "c8": "^7.12.0",
     "fast-check": "^3.3.0",
     "mocha": "^10.1.0",
     "ts-node": "^10.9.1",
