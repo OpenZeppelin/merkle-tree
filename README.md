@@ -103,6 +103,12 @@ const proof = tree.getProof(i);
 
 Returns a proof for the `i`th value in the tree. Indices refer to the position of the values in the array from which the tree was constructed.
 
+Also accepts a value instead of an index, but this will be less efficient. It will fail if the value is not found in the tree.
+
+```ts
+const proof = tree.getProof([alice, '100']);
+```
+
 ### `tree.getMultiProof`
 
 ```ts
@@ -112,6 +118,12 @@ const { proof, proofFlags, leaves } = tree.getMultiProof([i0, i1, ...]);
 Returns a multiproof for the values at indices `i0, i1, ...`. Indices refer to the position of the values in the array from which the tree was constructed.
 
 The multiproof returned contains an array with the leaves that are being proven. This array may be in a different order than that given by `i0, i1, ...`! The order returned is significant, as it is that in which the leaves must be submitted for verification (e.g., in a smart contract).
+
+Also accepts values instead of indices, but this will be less efficient. It will fail if any of the values is not found in the tree.
+
+```ts
+const proof = tree.getProof([[alice, '100'], [bob, '200']]);
+```
 
 ### `tree.entries`
 
