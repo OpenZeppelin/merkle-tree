@@ -80,15 +80,18 @@ This library works on "standard" merkle trees designed for Ethereum smart contra
 - The tree is shaped as a [complete binary tree](https://xlinux.nist.gov/dads/HTML/completeBinaryTree.html).
 - The leaves are sorted.
 - The leaves are the result of ABI encoding a series of values.
+- The hash used is Keccak256.
 - The leaves are double-hashed to prevent [second preimage attacks].
 
 [second preimage attacks]: https://flawed.net.nz/2018/02/21/attacking-merkle-trees-with-a-second-preimage-attack/
 
-The last two points imply that the hash of a leaf in the tree, with example values `addr, amount`, can be computed in Solidity as follows:
+From the last three points we get that the hash of a leaf in the tree with value `[addr, amount]` can be computed in Solidity as follows:
 
 ```solidity
 bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(addr, amount))));
 ```
+
+This is an opinionated design that we believe will offer the best out of the box experience for most users. We may introduce options for customization in the future based on user requests.
 
 ## API & Examples
 
