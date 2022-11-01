@@ -1,6 +1,6 @@
 # `@openzeppelin/merkle-tree`
 
-**A JavaScript library to generate merkle trees.** Well suited for airdrops and similar mechanisms, in combination with OpenZeppelin Contracts [`MerkleProof`] utilities.
+**A JavaScript library to generate merkle trees.** Well suited for airdrops and similar mechanisms in combination with OpenZeppelin Contracts [`MerkleProof`] utilities.
 
 [`MerkleProof`]: https://docs.openzeppelin.com/contracts/4.x/api/utils#MerkleProof
 
