@@ -50,7 +50,9 @@ A "standard" merkle tree has a few characteristics that make it good for on-chai
 - The tree is shaped as a [complete binary tree](https://xlinux.nist.gov/dads/HTML/completeBinaryTree.html).
 - The leaves are sorted.
 - The leaves are the result of ABI encoding a series of values.
-- The leaves are double-hashed to prevent attacks.
+- The leaves are double-hashed to prevent [second preimage attacks].
+
+[second preimage attacks]: https://flawed.net.nz/2018/02/21/attacking-merkle-trees-with-a-second-preimage-attack/
 
 The last two points imply that the hash of a leaf in the tree, with example values `addr, amount`, can be computed in Solidity as follows:
 
