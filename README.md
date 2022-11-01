@@ -12,6 +12,8 @@ Well suited for airdrops and similar mechanisms in combination with OpenZeppelin
 npm install @openzeppelin/merkle-tree
 ```
 
+### Building a Tree
+
 ```js
 import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
 import fs from "fs";
@@ -36,6 +38,34 @@ fs.writeFileSync("tree.json", JSON.stringify(tree.dump()));
 2. Build the merkle tree. Set the encoding to match the values.
 3. Print the merkle root. You will probably publish this value on chain in a smart contract.
 4. Write a file that describes the tree. You will distribute this to users so they can generate proofs for values in the tree.
+
+### Obtaining a Proof
+
+Assume we're looking to generate a proof for the entry that corresponds to address `0x11...11`.
+
+```js
+import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
+import fs from "fs";
+
+// (1)
+const tree = StandardMerkleTree.load(JSON.parse(fs.readFileSync("tree.json")));
+
+// (2)
+for (const [i, v] of tree.entries()) {
+  if (v[0] === '0x1111111111111111111111111111111111111111') {
+    // (3)
+    const proof = tree.getProof(i);
+    console.log('Value:', v);
+    console.log('Proof:', proof);
+  }
+}
+```
+
+1. Load the tree from the description that was generated previously.
+2. Loop through the entries to find the one you're interested in.
+3. Generate the proof using the index of the entry.
+
+In practice this might be done in a frontend application prior to submitting the proof on-chain. See [`MerkleProof`] for documentation on how to validate the proof in Solidity.
 
 ## API & Examples
 
