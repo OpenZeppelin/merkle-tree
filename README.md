@@ -21,7 +21,7 @@ Place the values for the merkle tree in `values.json`.
 
 Write a script to build the merkle tree. Print the merkle root, which can be published on chain, and write a file describing the tree to distribute to users. Note the value encoding is `address, uint256` in sync with the values in the file.
 
-```
+```js
 import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
 import fs from "fs";
 
