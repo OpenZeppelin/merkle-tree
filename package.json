@@ -4,14 +4,17 @@
   "description": "Utilities to work with merkle trees",
   "main": "dist/index.js",
   "scripts": {
+    "prepublishOnly": "npm run clean",
     "prepare": "tsc",
+    "clean": "rm -rf dist",
     "test": "mocha",
     "coverage": "c8 npm run test"
   },
   "files": [
     "/src",
     "/dist",
-    "!**/*.tsbuildinfo"
+    "!**/*.tsbuildinfo",
+    "!**/*.test.*"
   ],
   "keywords": [],
   "author": "Francisco Giordano <fg@frang.io>",
