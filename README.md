@@ -73,15 +73,9 @@ In practice this might be done in a frontend application prior to submitting the
 
 See [`MerkleProof`] for documentation on how to validate the proof in Solidity.
 
-## API & Examples
+## Standard Merkle Trees
 
-### `StandardMerkleTree`
-
-```ts
-import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
-```
-
-A "standard" merkle tree has a few characteristics that make it good for on-chain verification.
+This library works on "standard" merkle trees designed for Ethereum smart contracts. We have defined them with a few characteristics that make them secure and good for on-chain verification.
 
 - The tree is shaped as a [complete binary tree](https://xlinux.nist.gov/dads/HTML/completeBinaryTree.html).
 - The leaves are sorted.
@@ -94,6 +88,14 @@ The last two points imply that the hash of a leaf in the tree, with example valu
 
 ```solidity
 bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(addr, amount))));
+```
+
+## API & Examples
+
+### `StandardMerkleTree`
+
+```ts
+import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
 ```
 
 ### `StandardMerkleTree.of`
