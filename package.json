@@ -1,6 +1,6 @@
 {
   "name": "@openzeppelin/merkle-tree",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Utilities to work with merkle trees",
   "main": "dist/index.js",
   "scripts": {
