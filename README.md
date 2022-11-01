@@ -65,7 +65,9 @@ for (const [i, v] of tree.entries()) {
 2. Loop through the entries to find the one you're interested in.
 3. Generate the proof using the index of the entry.
 
-In practice this might be done in a frontend application prior to submitting the proof on-chain. See [`MerkleProof`] for documentation on how to validate the proof in Solidity.
+In practice this might be done in a frontend application prior to submitting the proof on-chain, with the address looked up being that of the connected wallet.
+
+See [`MerkleProof`] for documentation on how to validate the proof in Solidity.
 
 ## API & Examples
 
