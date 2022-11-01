@@ -11,6 +11,7 @@ function standardLeafHash<T extends any[]>(value: T, types: string[]): Bytes {
 }
 
 interface StandardMerkleTreeData<T extends any[]> {
+  format: 'standard-v1';
   tree: string[];
   values: {
     value: T;
@@ -47,6 +48,9 @@ export class StandardMerkleTree<T extends any[]> {
   }
 
   static load<T extends any[]>(data: StandardMerkleTreeData<T>): StandardMerkleTree<T> {
+    if (data.format !== 'standard-v1') {
+      throw new Error(`Unknown format '${data.format}'`);
+    }
     return new StandardMerkleTree(
       data.tree.map(hexToBytes),
       data.values,
@@ -56,6 +60,7 @@ export class StandardMerkleTree<T extends any[]> {
 
   dump(): StandardMerkleTreeData<T> {
     return {
+      format:      'standard-v1',
       tree:         this.tree.map(hex),
       values:       this.values,
       leafEncoding: this.leafEncoding,
