@@ -1,5 +1,7 @@
 # `@openzeppelin/merkle-tree`
 
+[![NPM Package](https://img.shields.io/npm/v/@openzeppelin/merkle-tree.svg)](https://www.npmjs.org/package/@openzeppelin/merkle-tree)
+
 **A JavaScript library to generate merkle trees and merkle proofs.**
 
 Well suited for airdrops and similar mechanisms in combination with OpenZeppelin Contracts [`MerkleProof`] utilities.
