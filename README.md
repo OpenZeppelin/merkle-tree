@@ -184,3 +184,17 @@ console.log(tree.render());
 ```
 
 Returns a visual representation of the tree that can be useful for debugging.
+
+### `tree.leafHash`
+
+```ts
+const leaf = tree.leafHash([alice, '100']);
+```
+
+Returns the hash of the value according to the specified encoding.
+
+Corresponds to the following expression in Solidity:
+
+```solidity
+bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(alice, 100))));
+```
