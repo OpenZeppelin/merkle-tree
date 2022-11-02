@@ -97,13 +97,13 @@ This is an opinionated design that we believe will offer the best out of the box
 
 ### `StandardMerkleTree`
 
-```ts
+```typescript
 import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
 ```
 
 ### `StandardMerkleTree.of`
 
-```ts
+```typescript
 const tree = StandardMerkleTree.of([[alice, '100'], [bob, '200']], ['address', 'uint']);
 ```
 
@@ -114,7 +114,7 @@ Creates a standard merkle tree out of an array of the elements in the tree, alon
 
 ### `tree.root`
 
-```ts
+```typescript
 console.log(tree.root);
 ```
 
@@ -122,7 +122,7 @@ The root of the tree is a commitment on the values of the tree. It can be publis
 
 ### `tree.dump`
 
-```ts
+```typescript
 fs.writeFileSync('tree.json', JSON.stringify(tree.dump()));
 ```
 
@@ -130,7 +130,7 @@ Returns a description of the merkle tree for distribution. It contains all the n
 
 ### `StandardMerkleTree.load`
 
-```ts
+```typescript
 StandardMerkleTree.load(JSON.parse(fs.readFileSync('tree.json')));
 ```
 
@@ -138,7 +138,7 @@ Loads the tree from a description previously returned by `dump`.
 
 ### `tree.getProof`
 
-```ts
+```typescript
 const proof = tree.getProof(i);
 ```
 
@@ -146,13 +146,13 @@ Returns a proof for the `i`th value in the tree. Indices refer to the position o
 
 Also accepts a value instead of an index, but this will be less efficient. It will fail if the value is not found in the tree.
 
-```ts
+```typescript
 const proof = tree.getProof([alice, '100']);
 ```
 
 ### `tree.getMultiProof`
 
-```ts
+```typescript
 const { proof, proofFlags, leaves } = tree.getMultiProof([i0, i1, ...]);
 ```
 
@@ -162,13 +162,13 @@ The multiproof returned contains an array with the leaves that are being proven.
 
 Also accepts values instead of indices, but this will be less efficient. It will fail if any of the values is not found in the tree.
 
-```ts
+```typescript
 const proof = tree.getProof([[alice, '100'], [bob, '200']]);
 ```
 
 ### `tree.entries`
 
-```ts
+```typescript
 for (const [i, v] of tree.entries()) {
   console.log('value:', v);
   console.log('proof:', tree.getProof(i));
@@ -179,7 +179,7 @@ Lists the values in the tree along with their indices, which can be used to obta
 
 ### `tree.render`
 
-```ts
+```typescript
 console.log(tree.render());
 ```
 
@@ -187,7 +187,7 @@ Returns a visual representation of the tree that can be useful for debugging.
 
 ### `tree.leafHash`
 
-```ts
+```typescript
 const leaf = tree.leafHash([alice, '100']);
 ```
 
