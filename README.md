@@ -191,7 +191,7 @@ Returns a visual representation of the tree that can be useful for debugging.
 const leaf = tree.leafHash([alice, '100']);
 ```
 
-Returns the leaf hash of the value, as defined in [Standard Merkle Trees][#standard-merkle-trees].
+Returns the leaf hash of the value, as defined in [Standard Merkle Trees](#standard-merkle-trees).
 
 Corresponds to the following expression in Solidity:
 
