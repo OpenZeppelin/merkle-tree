@@ -50,15 +50,15 @@ describe('core error conditions', () => {
   it('zero leaves', () => {
     assert.throws(
       () => makeMerkleTree([]),
-      'Error: Expected non-zero number of leaves',
+      /^Error: Expected non-zero number of leaves$/,
     );
   });
 
   it('multiproof duplicate index', () => {
-    const tree = makeMerkleTree(new Array(4).fill(zero));
+    const tree = makeMerkleTree(new Array(2).fill(zero));
     assert.throws(
       () => getMultiProof(tree, [1, 1]),
-      'Error: Cannot prove duplicated index',
+      /^Error: Cannot prove duplicated index$/,
     );
   });
 
@@ -69,7 +69,7 @@ describe('core error conditions', () => {
 
     assert.throws(
       () => renderMerkleTree([]),
-      'Error: Expected non-zero number of nodes',
+      /^Error: Expected non-zero number of nodes$/,
     );
   });
 });
