@@ -1,7 +1,10 @@
 import fc from 'fast-check';
+import assert from 'assert/strict';
 import { equalsBytes } from 'ethereum-cryptography/utils';
-import { makeMerkleTree, getProof, processProof, getMultiProof, processMultiProof } from './core';
+import { makeMerkleTree, getProof, processProof, getMultiProof, processMultiProof, isValidMerkleTree, renderMerkleTree } from './core';
 import { hex } from './bytes';
+
+const zero = new Uint8Array(32);
 
 const leaf = fc.uint8Array({ minLength: 32, maxLength: 32 }).map(x => PrettyBytes.from(x));
 const leaves = fc.array(leaf, { minLength: 1 });
@@ -39,6 +42,34 @@ describe('core properties', () => {
         const impliedRoot = processMultiProof(proof);
         return equalsBytes(root, impliedRoot);
       }),
+    );
+  });
+});
+
+describe('core error conditions', () => {
+  it('zero leaves', () => {
+    assert.throws(
+      () => makeMerkleTree([]),
+      'Error: Expected non-zero number of leaves',
+    );
+  });
+
+  it('multiproof duplicate index', () => {
+    const tree = makeMerkleTree(new Array(4).fill(zero));
+    assert.throws(
+      () => getMultiProof(tree, [1, 1]),
+      'Error: Cannot prove duplicated index',
+    );
+  });
+
+  it('tree validity', () => {
+    assert(!isValidMerkleTree([]), 'empty tree');
+    assert(!isValidMerkleTree([zero, zero]), 'even number of nodes');
+    assert(!isValidMerkleTree([zero, zero, zero]), 'inner node not hash of children');
+
+    assert.throws(
+      () => renderMerkleTree([]),
+      'Error: Expected non-zero number of nodes',
     );
   });
 });
