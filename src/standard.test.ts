@@ -1,5 +1,10 @@
 import assert from 'assert/strict';
+import { keccak256 } from 'ethereum-cryptography/keccak';
+import { hex } from './bytes';
 import { StandardMerkleTree } from './standard';
+
+const zeroBytes = new Uint8Array(32);
+const zero = hex(zeroBytes);
 
 const characters = (s: string) => {
   const l = s.split('').map(c => [c]);
@@ -60,7 +65,38 @@ describe('standard merkle tree', () => {
     const { t } = characters('a');
     assert.throws(
       () => t.getProof(1),
-      'Error: Index out of bounds',
-    )
+      /^Error: Index out of bounds$/,
+    );
+  });
+
+  it('reject unrecognized tree dump', () => {
+    assert.throws(
+      () => StandardMerkleTree.load({ format: 'nonstandard' } as any),
+      /^Error: Unknown format 'nonstandard'$/,
+    );
+  });
+
+  it('reject malformed tree dump', () => {
+    const t1 = StandardMerkleTree.load({
+      format: 'standard-v1',
+      tree: [zero],
+      values: [{ value: ['0'], treeIndex: 0 }],
+      leafEncoding: ['uint256'],
+    });
+    assert.throws(
+      () => t1.getProof(0),
+      /^Error: Merkle tree does not contain the expected value$/,
+    );
+
+    const t2 = StandardMerkleTree.load({
+      format: 'standard-v1',
+      tree: [zero, zero, hex(keccak256(keccak256(zeroBytes)))],
+      values: [{ value: ['0'], treeIndex: 2 }],
+      leafEncoding: ['uint256'],
+    });
+    assert.throws(
+      () => t2.getProof(0),
+      /^Error: Unable to prove value$/,
+    );
   });
 });
