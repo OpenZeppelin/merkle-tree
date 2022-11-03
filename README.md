@@ -8,7 +8,7 @@ Well suited for airdrops and similar mechanisms in combination with OpenZeppelin
 [`MerkleProof`]: https://docs.openzeppelin.com/contracts/4.x/api/utils#MerkleProof
 
 [![NPM Package](https://img.shields.io/npm/v/@openzeppelin/merkle-tree.svg)](https://www.npmjs.org/package/@openzeppelin/merkle-tree)
-
+[![Coverage](https://codecov.io/github/OpenZeppelin/merkle-tree/branch/master/graph/badge.svg?token=1JMTIEYRZK)](https://codecov.io/github/OpenZeppelin/merkle-tree)
 
 ## Quick Start
 
