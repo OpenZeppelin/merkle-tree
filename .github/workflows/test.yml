@@ -12,5 +12,5 @@ jobs:
       - uses: actions/checkout@v3
       - name: Set up environment
         uses: ./.github/actions/setup
-      - run: npm run coverage
+      - run: npm run coverage --forbid-only
       - uses: codecov/codecov-action@v3

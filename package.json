@@ -8,7 +8,7 @@
     "prepare": "tsc",
     "clean": "rm -rf dist",
     "test": "mocha",
-    "coverage": "c8 npm run test"
+    "coverage": "c8 npm run test --"
   },
   "files": [
     "/src",
