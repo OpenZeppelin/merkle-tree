@@ -21,16 +21,19 @@ interface StandardMerkleTreeData<T extends any[]> {
 }
 
 export class StandardMerkleTree<T extends any[]> {
+  private readonly hashLookup: { [hash: string]: number };
+
   private constructor(
     private readonly tree: Bytes[],
     private readonly values: { value: T, treeIndex: number }[],
     private readonly leafEncoding: string[],
-    private readonly hashLookup: { [hash: string]: number } =
-      Object.fromEntries(values.map((value, valueIndex) => [
-        hex(standardLeafHash(value.value, leafEncoding)),
+  ) {
+    this.hashLookup = 
+      Object.fromEntries(values.map(({ value }, valueIndex) => [
+        hex(standardLeafHash(value, leafEncoding)),
         valueIndex,
-      ]))
-  ) {}
+      ]));
+  }
 
   static of<T extends any[]>(values: T[], leafEncoding: string[]) {
     const hashedValues = values

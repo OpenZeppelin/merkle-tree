@@ -54,5 +54,13 @@ describe('standard merkle tree', () => {
 
     t2.validate();
     assert.deepEqual(t2, t);
-  })
+  });
+
+  it('reject out of bounds value index', () => {
+    const { t } = characters('a');
+    assert.throws(
+      () => t.getProof(1),
+      'Error: Index out of bounds',
+    )
+  });
 });
