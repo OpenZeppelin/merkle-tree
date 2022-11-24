@@ -104,7 +104,7 @@ contract Verifier {
 ```
 
 1. Store the tree root in your contract.
-2. Compute the [leaf hash](#treeleafhash) for the provided `addr` and `amount` ABI encoded values.
+2. Compute the [leaf hash](#leaf-hash) for the provided `addr` and `amount` ABI encoded values.
 3. Verify it using [`MerkleProof`]'s `verify` function.
 4. Use the verification to make further operations on the contract. (Consider you may want to add a mechanism to prevent reuse of a leaf/proof).
 
@@ -119,6 +119,8 @@ This library works on "standard" merkle trees designed for Ethereum smart contra
 - The leaves are double-hashed to prevent [second preimage attacks].
 
 [second preimage attacks]: https://flawed.net.nz/2018/02/21/attacking-merkle-trees-with-a-second-preimage-attack/
+
+### Leaf Hash
 
 From the last three points we get that the hash of a leaf in the tree with value `[addr, amount]` can be computed in Solidity as follows:
 
