@@ -106,7 +106,7 @@ contract Verifier {
 1. Store the tree root in your contract.
 2. Compute the [leaf hash](#treeleafhash) for the provided `addr` and `amount` ABI encoded values.
 3. Verify it using [`MerkleProof`]'s `verify` function.
-4. Use the verification to make further operations on the contract. (Consider you may want to add a mechanism to reuse the proof for a particular leaf).
+4. Use the verification to make further operations on the contract. (Consider you may want to add a mechanism to prevemt reuse of a leaf/proof).
 
 ## Standard Merkle Trees
 
