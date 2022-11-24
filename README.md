@@ -106,7 +106,7 @@ contract Verifier {
 3. Verify it using [`MerkleProof`]'s `verify` function.
 
 > **Note**
-> The provided example is not suitable for production purposes since it assumes the `_root` will never be changed. Consider adding a mechanism to securely update the `_root`
+> The provided example is not suitable for production purposes since it assumes the `root` will never be changed. Consider adding a mechanism to securely update the `root`
 
 ## Standard Merkle Trees
 
