@@ -71,7 +71,42 @@ for (const [i, v] of tree.entries()) {
 
 In practice this might be done in a frontend application prior to submitting the proof on-chain, with the address looked up being that of the connected wallet.
 
-See [`MerkleProof`] for documentation on how to validate the proof in Solidity.
+### Validating a Proof in Solidity
+
+Once the proof has been generated, it can be validated in Solidity using [`MerkleProof`] as in the following example:
+
+```solidity
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+
+contract Verifier {
+    bytes32 private root;
+
+    constructor(bytes32 _root) {
+        // (1)
+        root = _root;
+    }
+
+    function verify(
+        bytes32[] memory proof,
+        address addr,
+        uint256 amount
+    ) public {
+        // (2)
+        bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(addr, amount))));
+        // (3)
+        bool verified = MerkleProof.verify(proof, root, leaf), "Invalid proof");
+        // (4)
+        // ...
+    }
+}
+```
+
+1. Store the tree root in your contract.
+2. Compute the [leaf hash](#leaf-hash) for the provided `addr` and `amount` ABI encoded values.
+3. Verify it using [`MerkleProof`]'s `verify` function.
+4. Use the verification to make further operations on the contract. (Consider you may want to add a mechanism to prevent reuse of a leaf).
 
 ## Standard Merkle Trees
 
@@ -84,6 +119,8 @@ This library works on "standard" merkle trees designed for Ethereum smart contra
 - The leaves are double-hashed to prevent [second preimage attacks].
 
 [second preimage attacks]: https://flawed.net.nz/2018/02/21/attacking-merkle-trees-with-a-second-preimage-attack/
+
+### Leaf Hash
 
 From the last three points we get that the hash of a leaf in the tree with value `[addr, amount]` can be computed in Solidity as follows:
 
