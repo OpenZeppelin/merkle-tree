@@ -102,7 +102,7 @@ contract Verifier {
 ```
 
 1. Store the tree root in your contract.
-2. Compute the leaf's value for the provided `addr` and `amount` ABI encoded values.
+2. Compute the [leaf hash](#leaf-hash) for the provided `addr` and `amount` ABI encoded values.
 3. Verify it using [`MerkleProof`]'s `verify` function.
 
 > **Note**
