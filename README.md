@@ -71,7 +71,42 @@ for (const [i, v] of tree.entries()) {
 
 In practice this might be done in a frontend application prior to submitting the proof on-chain, with the address looked up being that of the connected wallet.
 
-See [`MerkleProof`] for documentation on how to validate the proof in Solidity.
+### Validating a Proof in Solidity
+
+Once you've gotten the proof, it can be validated in Solidity using [`MerkleProof`] with the following example:
+
+```solidity
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+
+contract Verifier {
+    bytes32 private root;
+
+    constructor(bytes32 _root) {
+        // (1)
+        root = _root;
+    }
+
+    function verify(
+        bytes32[] memory proof,
+        address addr,
+        uint256 amount
+    ) public view returns (bool) {
+        // (2)
+        bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(addr, amount))));
+        // (3)
+        return MerkleProof.verify(proof, root, leaf);
+    }
+}
+```
+
+1. Load the tree's root to your contract.
+2. Compute the leaf's value for the provided `addr` and `amount` ABI encoded values.
+3. Verify it using [`MerkleProof`]'s `verify` function.
+
+> **Note**
+> The provided example is not suitable for production purposes since it assumes the `_root` will never be changed. Consider adding a mechanism to securely update the `_root`
 
 ## Standard Merkle Trees
 
