@@ -92,11 +92,13 @@ contract Verifier {
         bytes32[] memory proof,
         address addr,
         uint256 amount
-    ) public view returns (bool) {
+    ) public {
         // (2)
         bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(addr, amount))));
         // (3)
-        return MerkleProof.verify(proof, root, leaf);
+        bool verified = MerkleProof.verify(proof, root, leaf), "Invalid proof");
+        // (4)
+        // ...
     }
 }
 ```
@@ -104,6 +106,7 @@ contract Verifier {
 1. Store the tree root in your contract.
 2. Compute the [leaf hash](#treeleafhash) for the provided `addr` and `amount` ABI encoded values.
 3. Verify it using [`MerkleProof`]'s `verify` function.
+4. Use the verification to make further operations on the contract. (Consider you may want to add a mechanism to reuse the proof for a particular leaf).
 
 ## Standard Merkle Trees
 
