@@ -73,7 +73,7 @@ In practice this might be done in a frontend application prior to submitting the
 
 ### Validating a Proof in Solidity
 
-Once you've gotten the proof, it can be validated in Solidity using [`MerkleProof`] with the following example:
+Once the proof has been generated, it can be validated in Solidity using [`MerkleProof`] as in the following example:
 
 ```solidity
 pragma solidity ^0.8.0;
