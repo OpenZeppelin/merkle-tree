@@ -96,7 +96,7 @@ contract Verifier {
         // (2)
         bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(addr, amount))));
         // (3)
-        bool verified = MerkleProof.verify(proof, root, leaf), "Invalid proof");
+        require(MerkleProof.verify(proof, root, leaf), "Invalid proof");
         // (4)
         // ...
     }
