@@ -144,7 +144,25 @@ export class StandardMerkleTree<T extends any[]> {
     }
   }
 
-  private validateValue(valueIndex: number) {
+  verify(leaf: number | T, proof: string[]): boolean {
+    const leafHash = typeof(leaf) === 'number'
+      ? this.validateValue(leaf)
+      : standardLeafHash(leaf, this.leafEncoding);
+    const impliedRoot = processProof(leafHash, proof.map(hexToBytes));
+    return equalsBytes(hexToBytes(this.root), impliedRoot);
+  }
+
+  verifyMultiProof(multiproof: MultiProof<string, T>): boolean {
+    const bytesMultiproof = {
+      leaves: multiproof.leaves.map(l => standardLeafHash(l, this.leafEncoding)),
+      proof: multiproof.proof.map(hexToBytes),
+      proofFlags: multiproof.proofFlags,
+    };
+    const impliedRoot = processMultiProof(bytesMultiproof);
+    return equalsBytes(hexToBytes(this.root), impliedRoot);
+  }
+
+  private validateValue(valueIndex: number): Bytes {
     checkBounds(this.values, valueIndex);
     const { value, treeIndex } = this.values[valueIndex]!;
     checkBounds(this.tree, treeIndex);
@@ -152,5 +170,6 @@ export class StandardMerkleTree<T extends any[]> {
     if (!equalsBytes(leaf, this.tree[treeIndex]!)) {
       throw new Error('Merkle tree does not contain the expected value');
     }
+    return leaf;
   }
 }
