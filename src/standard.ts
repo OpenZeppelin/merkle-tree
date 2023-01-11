@@ -103,17 +103,15 @@ export class StandardMerkleTree<T extends any[]> {
 
   getProof(leaf: number | T): string[] {
     // input validity
-    const valueIndex = typeof(leaf) === 'number' ? leaf : this.leafLookup(leaf);
+    const valueIndex = typeof leaf === 'number' ? leaf : this.leafLookup(leaf);
     this.validateValue(valueIndex);
 
     // rebuild tree index and generate proof
     const { treeIndex } = this.values[valueIndex]!;
     const proof = getProof(this.tree, treeIndex);
 
-    // check proof
-    const hash = this.tree[treeIndex]!;
-    const impliedRoot = processProof(hash, proof);
-    if (!equalsBytes(impliedRoot, this.tree[0]!)) {
+    // sanity check proof
+    if (!this._verify(this.tree[treeIndex]!, proof)) {
       throw new Error('Unable to prove value');
     }
 
@@ -123,16 +121,15 @@ export class StandardMerkleTree<T extends any[]> {
 
   getMultiProof(leaves: (number | T)[]): MultiProof<string, T> {
     // input validity
-    const valueIndices = leaves.map(leaf => typeof(leaf) === 'number' ? leaf : this.leafLookup(leaf));
+    const valueIndices = leaves.map(leaf => typeof leaf === 'number' ? leaf : this.leafLookup(leaf));
     for (const valueIndex of valueIndices) this.validateValue(valueIndex);
 
     // rebuild tree indices and generate proof
     const indices = valueIndices.map(i => this.values[i]!.treeIndex);
     const proof = getMultiProof(this.tree, indices);
 
-    // check proof
-    const impliedRoot = processMultiProof(proof);
-    if (!equalsBytes(impliedRoot, this.tree[0]!)) {
+    // sanity check proof
+    if (!this._verifyMultiProof(proof)) {
       throw new Error('Unable to prove values');
     }
 
@@ -145,21 +142,25 @@ export class StandardMerkleTree<T extends any[]> {
   }
 
   verify(leaf: number | T, proof: string[]): boolean {
-    const leafHash = typeof(leaf) === 'number'
-      ? this.validateValue(leaf)
-      : standardLeafHash(leaf, this.leafEncoding);
-    const impliedRoot = processProof(leafHash, proof.map(hexToBytes));
-    return equalsBytes(hexToBytes(this.root), impliedRoot);
+    return this._verify(this.getLeafHash(leaf), proof.map(hexToBytes));
   }
 
-  verifyMultiProof(multiproof: MultiProof<string, T>): boolean {
-    const bytesMultiproof = {
-      leaves: multiproof.leaves.map(l => standardLeafHash(l, this.leafEncoding)),
+  private _verify(leafHash: Bytes, proof: Bytes[]): boolean {
+    const impliedRoot = processProof(leafHash, proof);
+    return equalsBytes(impliedRoot, this.tree[0]!);
+  }
+
+  verifyMultiProof(multiproof: MultiProof<string, number | T>): boolean {
+    return this._verifyMultiProof({
+      leaves: multiproof.leaves.map(l => this.getLeafHash(l)),
       proof: multiproof.proof.map(hexToBytes),
       proofFlags: multiproof.proofFlags,
-    };
-    const impliedRoot = processMultiProof(bytesMultiproof);
-    return equalsBytes(hexToBytes(this.root), impliedRoot);
+    });
+  }
+
+  private _verifyMultiProof(multiproof: MultiProof<Bytes, Bytes>) {
+    const impliedRoot = processMultiProof(multiproof);
+    return equalsBytes(impliedRoot, this.tree[0]!);
   }
 
   private validateValue(valueIndex: number): Bytes {
@@ -171,5 +172,13 @@ export class StandardMerkleTree<T extends any[]> {
       throw new Error('Merkle tree does not contain the expected value');
     }
     return leaf;
+  }
+
+  private getLeafHash(leaf: number | T): Bytes {
+    if (typeof leaf === 'number') {
+      return this.validateValue(leaf);
+    } else {
+      return standardLeafHash(leaf, this.leafEncoding);
+    }
   }
 }
