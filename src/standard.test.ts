@@ -22,10 +22,13 @@ describe('standard merkle tree', () => {
     const { t } = characters('abcdef');
 
     for (const [id, leaf] of t.entries()) {
-      // getProof internally validates the proof
       const proof1 = t.getProof(id);
       const proof2 = t.getProof(leaf);
+
       assert.deepEqual(proof1, proof2);
+
+      assert(t.verify(id, proof1));
+      assert(t.verify(leaf, proof1));
     }
   });
 
@@ -33,10 +36,12 @@ describe('standard merkle tree', () => {
     const { t, l } = characters('abcdef');
 
     for (const ids of [[], [0, 1], [0, 1, 5], [1, 3, 4, 5], [0, 2, 4, 5], [0, 1, 2, 3, 4, 5]]) {
-      // getMultiProof internally validates the proof
       const proof1 = t.getMultiProof(ids);
       const proof2 = t.getMultiProof(ids.map(i => l[i]!));
+
       assert.deepEqual(proof1, proof2);
+
+      assert(t.verifyMultiProof(proof1));
     }
   });
 
