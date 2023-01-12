@@ -158,7 +158,7 @@ export class StandardMerkleTree<T extends any[]> {
     });
   }
 
-  private _verifyMultiProof(multiproof: MultiProof<Bytes, Bytes>) {
+  private _verifyMultiProof(multiproof: MultiProof<Bytes, Bytes>): boolean {
     const impliedRoot = processMultiProof(multiproof);
     return equalsBytes(impliedRoot, this.tree[0]!);
   }
