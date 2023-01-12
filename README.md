@@ -203,6 +203,23 @@ Also accepts values instead of indices, but this will be less efficient. It will
 const proof = tree.getProof([[alice, '100'], [bob, '200']]);
 ```
 
+### `tree.verify`
+
+```typescript
+tree.verify(i, proof);
+tree.verify([alice, '100'], proof);
+```
+
+Returns a boolean that is `true` when the proof verifies that the value is contained in the tree.
+
+### `tree.verifyMultiProof`
+
+```typescript
+tree.verifyMultiProof({ proof, proofFlags, leaves });
+```
+
+Returns a boolean that is `true` when the multi-proof verifies that the values are contained in the tree.
+
 ### `tree.entries`
 
 ```typescript
