@@ -144,7 +144,7 @@ import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
 const tree = StandardMerkleTree.of([[alice, '100'], [bob, '200']], ['address', 'uint']);
 ```
 
-Creates a standard merkle tree out of an array of the elements in the tree, along with their types for ABI encoding.
+Creates a standard merkle tree out of an array of the elements in the tree, along with their types for ABI encoding. For documentation on the syntax of the types, including how to encode structs, refer to the documentation for Ethers.js's [`AbiCoder`](https://docs.ethers.org/v5/api/utils/abi/coder/#AbiCoder-encode).
 
 > **Note**
 > Consider reading the array of elements from a CSV file for easy interoperability with spreadsheets or other data processing pipelines.
