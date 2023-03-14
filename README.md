@@ -220,6 +220,14 @@ tree.verifyMultiProof({ proof, proofFlags, leaves });
 
 Returns a boolean that is `true` when the multi-proof verifies that the values are contained in the tree.
 
+### `StandardMerkleTree.verifyWithRoot`
+
+```typescript
+const verified = StandardMerkleTree.verifyWithRoot([alice, '100'], proof, root, ['address', 'uint']);
+```
+
+Returns a boolean that is `true` when the proof verifies that the value is contained in the tree given only the proof, merkle root, and encoding.
+
 ### `tree.entries`
 
 ```typescript
