@@ -28,7 +28,7 @@ export class StandardMerkleTree<T extends any[]> {
     private readonly values: { value: T, treeIndex: number }[],
     private readonly leafEncoding: string[],
   ) {
-    this.hashLookup = 
+    this.hashLookup =
       Object.fromEntries(values.map(({ value }, valueIndex) => [
         hex(standardLeafHash(value, leafEncoding)),
         valueIndex,
@@ -60,7 +60,6 @@ export class StandardMerkleTree<T extends any[]> {
       data.leafEncoding,
     );
   }
-
   static verifyWithRoot<T extends any[]>(leaf: T[], proof: string[], root: string, leafEncoding: string[]): boolean {
     const impliedRoot = processProof(standardLeafHash(leaf, leafEncoding), proof.map(hexToBytes));
     return equalsBytes(impliedRoot, hexToBytes(root));
