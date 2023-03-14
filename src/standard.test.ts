@@ -32,6 +32,16 @@ describe('standard merkle tree', () => {
     }
   });
 
+  it('generates valid single proofs for all leaves from root and encoding', () => {
+    const { t } = characters('abcdef');
+
+    for (const [, leaf] of t.entries()) {
+      const proof = t.getProof(leaf);
+
+      assert(StandardMerkleTree.verifyWithRoot(leaf, proof, t.root, ['string']));
+    }
+  });
+
   it('generates valid multiproofs', () => {
     const { t, l } = characters('abcdef');
 

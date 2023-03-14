@@ -61,6 +61,10 @@ export class StandardMerkleTree<T extends any[]> {
     );
   }
 
+  static verifyWithRoot(leaf: any[], proof: string[], root: string, leafEncoding: string[]): boolean {
+    return StandardMerkleTree._verifyWithRoot(standardLeafHash(leaf, leafEncoding), proof.map(hexToBytes), root);
+  }
+
   dump(): StandardMerkleTreeData<T> {
     return {
       format:      'standard-v1',
@@ -148,6 +152,11 @@ export class StandardMerkleTree<T extends any[]> {
   private _verify(leafHash: Bytes, proof: Bytes[]): boolean {
     const impliedRoot = processProof(leafHash, proof);
     return equalsBytes(impliedRoot, this.tree[0]!);
+  }
+
+  private static _verifyWithRoot(leafHash: Bytes, proof: Bytes[], root: string): boolean {
+    const impliedRoot = processProof(leafHash, proof);
+    return equalsBytes(impliedRoot, hexToBytes(root));
   }
 
   verifyMultiProof(multiproof: MultiProof<string, number | T>): boolean {
