@@ -149,6 +149,14 @@ Creates a standard merkle tree out of an array of the elements in the tree, alon
 > **Note**
 > Consider reading the array of elements from a CSV file for easy interoperability with spreadsheets or other data processing pipelines.
 
+### `StandardMerkleTree.verify`
+
+```typescript
+const verified = StandardMerkleTree.verify(root, ['address', 'uint'], [alice, '100'], proof);
+```
+
+Returns a boolean that is `true` when the proof verifies that the value is contained in the tree given only the proof, merkle root, and encoding.
+
 ### `tree.root`
 
 ```typescript

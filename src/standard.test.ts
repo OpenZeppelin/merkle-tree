@@ -32,6 +32,26 @@ describe('standard merkle tree', () => {
     }
   });
 
+  it('generates valid single proofs for all leaves from root and encoding', () => {
+    const { t } = characters('abcdef');
+
+    for (const [, leaf] of t.entries()) {
+      const proof = t.getProof(leaf);
+
+      assert(StandardMerkleTree.verify(t.root, ['string'], leaf, proof));
+    }
+  });
+
+  it('rejects invalid proof using static verify method', () => {
+    const { t } = characters('abcdef');
+    const { t: fakeTree } = characters('xyz');
+
+    const testLeaf = ['x'];
+    const proof = fakeTree.getProof(testLeaf);
+
+    assert(!StandardMerkleTree.verify(t.root, ['string'], testLeaf, proof));
+  });
+
   it('generates valid multiproofs', () => {
     const { t, l } = characters('abcdef');
 
