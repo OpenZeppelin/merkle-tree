@@ -38,8 +38,18 @@ describe('standard merkle tree', () => {
     for (const [, leaf] of t.entries()) {
       const proof = t.getProof(leaf);
 
-      assert(StandardMerkleTree.verifyWithRoot(leaf, proof, t.root, ['string']));
+      assert(StandardMerkleTree.verify(t.root, ['string'], leaf, proof));
     }
+  });
+
+  it('rejects invalid proof using static verify method', () => {
+    const { t } = characters('abcdef');
+    const { t: fakeTree } = characters('xyz');
+
+    const testLeaf = ['x'];
+    const proof = fakeTree.getProof(testLeaf);
+
+    assert(!StandardMerkleTree.verify(t.root, ['string'], testLeaf, proof));
   });
 
   it('generates valid multiproofs', () => {

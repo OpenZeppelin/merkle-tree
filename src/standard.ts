@@ -61,7 +61,7 @@ export class StandardMerkleTree<T extends any[]> {
     );
   }
 
-  static verifyWithRoot<T extends any[]>(leaf: T[], proof: string[], root: string, leafEncoding: string[]): boolean {
+  static verify<T extends any[]>(root: string, leafEncoding: string[], leaf: T, proof: string[]): boolean {
     const impliedRoot = processProof(standardLeafHash(leaf, leafEncoding), proof.map(hexToBytes));
     return equalsBytes(impliedRoot, hexToBytes(root));
   }
