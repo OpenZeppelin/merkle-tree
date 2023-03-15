@@ -157,6 +157,14 @@ const verified = StandardMerkleTree.verify(root, ['address', 'uint'], [alice, '1
 
 Returns a boolean that is `true` when the proof verifies that the value is contained in the tree given only the proof, merkle root, and encoding.
 
+### `StandardMerkleTree.load`
+
+```typescript
+StandardMerkleTree.load(JSON.parse(fs.readFileSync('tree.json')));
+```
+
+Loads the tree from a description previously returned by `tree.dump`.
+
 ### `tree.root`
 
 ```typescript
@@ -172,14 +180,6 @@ fs.writeFileSync('tree.json', JSON.stringify(tree.dump()));
 ```
 
 Returns a description of the merkle tree for distribution. It contains all the necessary information to reproduce the tree, find the relevant leaves, and generate proofs. You should distribute this to users in a web application or command line interface so they can generate proofs for their leaves of interest.
-
-### `StandardMerkleTree.load`
-
-```typescript
-StandardMerkleTree.load(JSON.parse(fs.readFileSync('tree.json')));
-```
-
-Loads the tree from a description previously returned by `dump`.
 
 ### `tree.getProof`
 
