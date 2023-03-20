@@ -66,26 +66,26 @@ describe('standard merkle tree', () => {
   });
 
   it('generates valid multi-proofs for all leaves from root and encoding', () => {
-    const { t } = characters("abcdef");
+    const { t } = characters('abcdef');
     const leaves = Array.from(t.entries()).map(([_, leaf]) => leaf);
 
     const multiproof = t.getMultiProof(leaves);
 
-    assert(StandardMerkleTree.verifyMultiProof(t.root, ["string"], multiproof));
+    assert(StandardMerkleTree.verifyMultiProof(t.root, ['string'], multiproof));
   });
 
   it('rejects invalid multi-proof using static verifyMultiProof method', () => {
-    const { t } = characters("abcdef");
-    const { t: fakeTree } = characters("xyz");
+    const { t } = characters('abcdef');
+    const { t: fakeTree } = characters('xyz');
 
     const fakeLeaves = Array.from(fakeTree.entries()).map(([_, leaf]) => leaf);
     const fakeMultiProof = fakeTree.getMultiProof(fakeLeaves);
 
-    assert(!StandardMerkleTree.verifyMultiProof(t.root, ["string"], fakeMultiProof));
+    assert(!StandardMerkleTree.verifyMultiProof(t.root, ['string'], fakeMultiProof));
   });
 
   it('verifies partial multi-proof using static verifyMultiProof method', () => {
-    const { t } = characters("abcdef");
+    const { t } = characters('abcdef');
 
     const leaves = Array.from(t.entries())
       .filter(([index]) => index % 2 === 0)
@@ -93,7 +93,7 @@ describe('standard merkle tree', () => {
 
     const multiproof = t.getMultiProof(leaves);
 
-    assert(StandardMerkleTree.verifyMultiProof(t.root, ["string"], multiproof));
+    assert(StandardMerkleTree.verifyMultiProof(t.root, ['string'], multiproof));
   });
 
   it('renders tree representation', () => {
