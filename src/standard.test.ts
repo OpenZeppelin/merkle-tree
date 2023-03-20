@@ -65,7 +65,7 @@ describe('standard merkle tree', () => {
     }
   });
 
-  it("generates valid multi-proofs for all leaves from root and encoding", () => {
+  it('generates valid multi-proofs for all leaves from root and encoding', () => {
     const { t } = characters("abcdef");
     const leaves = Array.from(t.entries()).map(([_, leaf]) => leaf);
 
@@ -74,7 +74,7 @@ describe('standard merkle tree', () => {
     assert(StandardMerkleTree.verifyMultiProof(t.root, ["string"], multiproof));
   });
 
-  it("rejects invalid multi-proof using static verifyMultiProof method", () => {
+  it('rejects invalid multi-proof using static verifyMultiProof method', () => {
     const { t } = characters("abcdef");
     const { t: fakeTree } = characters("xyz");
 
@@ -84,7 +84,7 @@ describe('standard merkle tree', () => {
     assert(!StandardMerkleTree.verifyMultiProof(t.root, ["string"], fakeMultiProof));
   });
 
-  it("verifies partial multi-proof using static verifyMultiProof method", () => {
+  it('verifies partial multi-proof using static verifyMultiProof method', () => {
     const { t } = characters("abcdef");
 
     const leaves = Array.from(t.entries())
