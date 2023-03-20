@@ -66,6 +66,19 @@ export class StandardMerkleTree<T extends any[]> {
     return equalsBytes(impliedRoot, hexToBytes(root));
   }
 
+  static verifyMultiProof<T extends any[]>(root: string, leafEncoding: string[], multiproof: MultiProof<string, T>): boolean {
+    const leafHashes = multiproof.leaves.map(leaf => standardLeafHash(leaf, leafEncoding));
+    const proofBytes = multiproof.proof.map(hexToBytes);
+
+    const impliedRoot = processMultiProof({
+      leaves: leafHashes,
+      proof: proofBytes,
+      proofFlags: multiproof.proofFlags,
+    });
+
+    return equalsBytes(impliedRoot, hexToBytes(root));
+  }
+
   dump(): StandardMerkleTreeData<T> {
     return {
       format:      'standard-v1',

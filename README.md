@@ -157,6 +157,14 @@ const verified = StandardMerkleTree.verify(root, ['address', 'uint'], [alice, '1
 
 Returns a boolean that is `true` when the proof verifies that the value is contained in the tree given only the proof, merkle root, and encoding.
 
+### `StandardMerkleTree.verifyMultiProof`
+
+```typescript
+const isValid = StandardMerkleTree.verifyMultiProof(root, leafEncoding, multiproof);
+```
+
+Returns a boolean that is `true` when the multiproof verifies that all the values are contained in the tree given only the multiproof, merkle root, and leaf encoding.
+
 ### `StandardMerkleTree.load`
 
 ```typescript
