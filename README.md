@@ -76,7 +76,7 @@ In practice this might be done in a frontend application prior to submitting the
 Once the proof has been generated, it can be validated in Solidity using [`MerkleProof`] as in the following example:
 
 ```solidity
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
