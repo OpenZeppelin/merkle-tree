@@ -112,7 +112,7 @@ contract Verifier {
 
 This library works on "standard" merkle trees designed for Ethereum smart contracts. We have defined them with a few characteristics that make them secure and good for on-chain verification.
 
-- The tree is shaped as a [complete binary tree](https://xlinux.nist.gov/dads/HTML/completeBinaryTree.html).
+- The tree is shaped as both of a [complete binary tree](https://xlinux.nist.gov/dads/HTML/completeBinaryTree.html) and a [full binary tree](https://xlinux.nist.gov/dads/HTML/fullBinaryTree.html).
 - The leaves are sorted.
 - The leaves are the result of ABI encoding a series of values.
 - The hash used is Keccak256.
