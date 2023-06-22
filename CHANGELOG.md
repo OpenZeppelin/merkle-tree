@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.5
+
+- Make `processMultiProof` more robust by validating invariants.
+
 ## 1.0.4
 
 - Added `StandardMerkleTree.verifyMultiProof` static method.

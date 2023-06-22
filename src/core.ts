@@ -120,9 +120,16 @@ export function processMultiProof(multiproof: MultiProof<Bytes>): Bytes {
   const proof = multiproof.proof.concat(); // copy
 
   for (const flag of multiproof.proofFlags) {
-    const a = stack.shift()!;
-    const b = flag ? stack.shift()! : proof.shift()!;
+    const a = stack.shift();
+    const b = flag ? stack.shift() : proof.shift();
+    if (a === undefined || b === undefined) {
+      throw new Error('Broken invariant');
+    }
     stack.push(hashPair(a, b));
+  }
+
+  if (stack.length + proof.length !== 1) {
+      throw new Error('Broken invariant');
   }
 
   return stack.pop() ?? proof.shift()!;

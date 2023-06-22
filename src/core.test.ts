@@ -2,7 +2,8 @@ import fc from 'fast-check';
 import assert from 'assert/strict';
 import { equalsBytes } from 'ethereum-cryptography/utils';
 import { makeMerkleTree, getProof, processProof, getMultiProof, processMultiProof, isValidMerkleTree, renderMerkleTree } from './core';
-import { hex } from './bytes';
+import { compareBytes, hex } from './bytes';
+import { keccak256 } from 'ethereum-cryptography/keccak';
 
 const zero = new Uint8Array(32);
 
@@ -72,6 +73,23 @@ describe('core error conditions', () => {
       /^Error: Expected non-zero number of nodes$/,
     );
   });
+
+  it('multiproof invariants', () => {
+    const leaf = keccak256(Uint8Array.of(42));
+    const tree = makeMerkleTree([leaf, zero]);
+
+    const badMultiProof = {
+      leaves: [128, 129].map(n => keccak256(Uint8Array.of(n))).sort(compareBytes),
+      proof: [leaf, leaf],
+      proofFlags: [true, true, false],
+    };
+
+    assert.throws(
+      () => processMultiProof(badMultiProof),
+      /^Error: Broken invariant$/,
+    );
+  });
+
 });
 
 class PrettyBytes extends Uint8Array {
