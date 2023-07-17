@@ -269,4 +269,4 @@ Corresponds to the following expression in Solidity:
 bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(alice, 100))));
 ```
 
-[^1]: The actual reason for hashing the leaves twice is to prevent the leaf values from being 64 bytes long _prior_ to hashing. Otherwise, the concatenation of a sorted pair of internal nodes in the Merkle tree could be reinterpreted as a leaf value. See [here](https://github.com/OpenZeppelin/openzeppelin-contracts/issues/3091) for more details.
+[^1]: The underlying reason for hashing the leaves twice is to prevent the leaf values from being 64 bytes long _prior_ to hashing. Otherwise, the concatenation of a sorted pair of internal nodes in the Merkle tree could be reinterpreted as a leaf value. See [here](https://github.com/OpenZeppelin/openzeppelin-contracts/issues/3091) for more details.
