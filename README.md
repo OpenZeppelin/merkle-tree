@@ -116,7 +116,7 @@ This library works on "standard" merkle trees designed for Ethereum smart contra
 - The leaves are sorted.
 - The leaves are the result of ABI encoding a series of values.
 - The hash used is Keccak256.
-- The leaves are double-hashed to prevent [second preimage attacks].
+- The leaves are double-hashed[^1] to prevent [second preimage attacks].
 
 [second preimage attacks]: https://flawed.net.nz/2018/02/21/attacking-merkle-trees-with-a-second-preimage-attack/
 
@@ -268,3 +268,5 @@ Corresponds to the following expression in Solidity:
 ```solidity
 bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(alice, 100))));
 ```
+
+[^1]: The actual reason for hashing the leaves twice is to prevent the leaf values from being 64 bytes long _prior_ to hashing. Otherwise, the concatenation of a sorted pair of internal nodes in the Merkle tree could be reinterpreted as a leaf value. See [here](https://github.com/OpenZeppelin/openzeppelin-contracts/issues/3091) for more details.
