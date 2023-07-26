@@ -52,7 +52,7 @@ import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
 import fs from "fs";
 
 // (1)
-const tree = StandardMerkleTree.load(JSON.parse(fs.readFileSync("tree.json")));
+const tree = StandardMerkleTree.load(JSON.parse(fs.readFileSync("tree.json", "utf8")));
 
 // (2)
 for (const [i, v] of tree.entries()) {
@@ -168,7 +168,7 @@ Returns a boolean that is `true` when the multiproof verifies that all the value
 ### `StandardMerkleTree.load`
 
 ```typescript
-StandardMerkleTree.load(JSON.parse(fs.readFileSync('tree.json')));
+StandardMerkleTree.load(JSON.parse(fs.readFileSync('tree.json', 'utf8')));
 ```
 
 Loads the tree from a description previously returned by `tree.dump`.
