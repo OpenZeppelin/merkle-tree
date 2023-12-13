@@ -6,7 +6,7 @@ import { StandardMerkleTree, StandardMerkleTreeOptions } from './standard';
 const zeroBytes = new Uint8Array(32);
 const zero = hex(zeroBytes);
 
-const characters = (s: string, opts: StandardMerkleTreeOptions = {}) => {
+const makeTree = (s: string, opts: StandardMerkleTreeOptions = {}) => {
   const l = s.split('').map(c => [c]);
   const t = StandardMerkleTree.of(l, ['string'], opts);
   return { l, t };
@@ -14,72 +14,61 @@ const characters = (s: string, opts: StandardMerkleTreeOptions = {}) => {
 
 describe('standard merkle tree', () => {
   for (const opts of [
-    {}, // empty options
+    {},
     { sortLeaves: true },
     { sortLeaves: false },
   ]) {
-    describe(`with options ${JSON.stringify(opts)}`, () => {
+    describe(`with options '${JSON.stringify(opts)}'`, () => {
+      const { l: leaves, t: tree } = makeTree('abcdef', opts);
+      const { l: otherLeaves, t: otherTree } = makeTree('abc', opts);
+
       it('generates valid single proofs for all leaves', () => {
-        const { t } = characters('abcdef', opts);
-        t.validate();
+        tree.validate();
       });
 
       it('generates valid single proofs for all leaves', () => {
-        const { t } = characters('abcdef', opts);
-
-        for (const [id, leaf] of t.entries()) {
-          const proof1 = t.getProof(id);
-          const proof2 = t.getProof(leaf);
+        for (const [id, leaf] of tree.entries()) {
+          const proof1 = tree.getProof(id);
+          const proof2 = tree.getProof(leaf);
 
           assert.deepEqual(proof1, proof2);
 
-          assert(t.verify(id, proof1));
-          assert(t.verify(leaf, proof1));
-          assert(StandardMerkleTree.verify(t.root, ['string'], leaf, proof1));
+          assert(tree.verify(id, proof1));
+          assert(tree.verify(leaf, proof1));
+          assert(StandardMerkleTree.verify(tree.root, ['string'], leaf, proof1));
         }
       });
 
       it('rejects invalid proofs', () => {
-        const { t } = characters('abcdef', opts);
-        const { t: otherTree } = characters('abc', opts);
-
         const leaf = ['a'];
         const invalidProof = otherTree.getProof(leaf);
 
-        assert(!t.verify(leaf, invalidProof));
-        assert(!StandardMerkleTree.verify(t.root, ['string'], leaf, invalidProof));
+        assert(!tree.verify(leaf, invalidProof));
+        assert(!StandardMerkleTree.verify(tree.root, ['string'], leaf, invalidProof));
       });
 
       it('generates valid multiproofs', () => {
-        const { t, l } = characters('abcdef', opts);
-
         for (const ids of [[], [0, 1], [0, 1, 5], [1, 3, 4, 5], [0, 2, 4, 5], [0, 1, 2, 3, 4, 5]]) {
-          const proof1 = t.getMultiProof(ids);
-          const proof2 = t.getMultiProof(ids.map(i => l[i]!));
+          const proof1 = tree.getMultiProof(ids);
+          const proof2 = tree.getMultiProof(ids.map(i => leaves[i]!));
 
           assert.deepEqual(proof1, proof2);
 
-          assert(t.verifyMultiProof(proof1));
-          assert(StandardMerkleTree.verifyMultiProof(t.root, ['string'], proof1));
+          assert(tree.verifyMultiProof(proof1));
+          assert(StandardMerkleTree.verifyMultiProof(tree.root, ['string'], proof1));
         }
       });
 
       it('rejects invalid multiproofs', () => {
-        const { t } = characters('abcdef', opts);
-        const { t: otherTree } = characters('abc', opts);
+        const multiProof = otherTree.getMultiProof([['a'], ['b'], ['c']]);
 
-        const leaves = [['a'], ['b'], ['c']];
-        const multiProof = otherTree.getMultiProof(leaves);
-
-        assert(!t.verifyMultiProof(multiProof));
-        assert(!StandardMerkleTree.verifyMultiProof(t.root, ['string'], multiProof));
+        assert(!tree.verifyMultiProof(multiProof));
+        assert(!StandardMerkleTree.verifyMultiProof(tree.root, ['string'], multiProof));
       });
 
       it('renders tree representation', () => {
-        const { t } = characters('abcdef', opts);
-
         assert.equal(
-          t.render(),
+          tree.render(),
           opts.sortLeaves == false
             ? [
                 "0) 23be0977360f08bb0bd7f709a7d543d2cd779c79c66d74e0441919871647de2b",
@@ -111,17 +100,15 @@ describe('standard merkle tree', () => {
       });
 
       it('dump and load', () => {
-        const { t } = characters('abcdef', opts);
-        const t2 = StandardMerkleTree.load(t.dump());
+        const recoveredTree = StandardMerkleTree.load(tree.dump());
 
-        t2.validate();
-        assert.deepEqual(t2, t);
+        recoveredTree.validate();
+        assert.deepEqual(tree, recoveredTree);
       });
 
       it('reject out of bounds value index', () => {
-        const { t } = characters('a', opts);
         assert.throws(
-          () => t.getProof(1),
+          () => tree.getProof(leaves.length),
           /^Error: Index out of bounds$/,
         );
       });
@@ -134,25 +121,25 @@ describe('standard merkle tree', () => {
       });
 
       it('reject malformed tree dump', () => {
-        const t1 = StandardMerkleTree.load({
+        const loadedTree1 = StandardMerkleTree.load({
           format: 'standard-v1',
           tree: [zero],
           values: [{ value: ['0'], treeIndex: 0 }],
           leafEncoding: ['uint256'],
         });
         assert.throws(
-          () => t1.getProof(0),
+          () => loadedTree1.getProof(0),
           /^Error: Merkle tree does not contain the expected value$/,
         );
 
-        const t2 = StandardMerkleTree.load({
+        const loadedTree2 = StandardMerkleTree.load({
           format: 'standard-v1',
           tree: [zero, zero, hex(keccak256(keccak256(zeroBytes)))],
           values: [{ value: ['0'], treeIndex: 2 }],
           leafEncoding: ['uint256'],
         });
         assert.throws(
-          () => t2.getProof(0),
+          () => loadedTree2.getProof(0),
           /^Error: Unable to prove value$/,
         );
       });
