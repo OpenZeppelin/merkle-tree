@@ -20,6 +20,14 @@ interface StandardMerkleTreeData<T extends any[]> {
   leafEncoding: string[];
 }
 
+interface StandardMerkleTreeOptions {
+  sortLeaves: boolean;
+}
+
+const defaultOptions: StandardMerkleTreeOptions = {
+  sortLeaves: true,
+};
+
 export class StandardMerkleTree<T extends any[]> {
   private readonly hashLookup: { [hash: string]: number };
 
@@ -35,10 +43,14 @@ export class StandardMerkleTree<T extends any[]> {
       ]));
   }
 
-  static of<T extends any[]>(values: T[], leafEncoding: string[]) {
-    const hashedValues = values
-      .map((value, valueIndex) => ({ value, valueIndex, hash: standardLeafHash(value, leafEncoding) }))
-      .sort((a, b) => compareBytes(a.hash, b.hash));
+  static of<T extends any[]>(values: T[], leafEncoding: string[], options: Partial<StandardMerkleTreeOptions> = {}) {
+    const { sortLeaves } = { ...defaultOptions, ...options };
+
+    const hashedValues = values.map((value, valueIndex) => ({ value, valueIndex, hash: standardLeafHash(value, leafEncoding) }));
+
+    if (sortLeaves) {
+      hashedValues.sort((a, b) => compareBytes(a.hash, b.hash));
+    }
 
     const tree = makeMerkleTree(hashedValues.map(v => v.hash));
 
