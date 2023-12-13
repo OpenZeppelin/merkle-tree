@@ -1,14 +1,20 @@
-import { keccak256 } from 'ethereum-cryptography/keccak';
 import { equalsBytes, hexToBytes } from 'ethereum-cryptography/utils';
-import { defaultAbiCoder } from '@ethersproject/abi';
 import { Bytes, compareBytes, hex } from './bytes';
 import { getProof, isValidMerkleTree, makeMerkleTree, processProof, renderMerkleTree, MultiProof, getMultiProof, processMultiProof } from './core';
 import { checkBounds } from './utils/check-bounds';
 import { throwError } from './utils/throw-error';
+import { standardLeafHash } from './utils/standard-leaf-hash';
 
-function standardLeafHash<T extends any[]>(value: T, types: string[]): Bytes {
-  return keccak256(keccak256(hexToBytes(defaultAbiCoder.encode(types, value))));
-}
+// MerkleTree building options
+export type StandardMerkleTreeOptions = Partial<{
+  sortLeaves: boolean;
+}>;
+
+// For backward compatibility reasons, leaves are sorted by default.
+// This can be disabled for usecases where leaves ordering needs to be preserved
+const defaultOptions: Required<StandardMerkleTreeOptions> = {
+  sortLeaves: true,
+};
 
 interface StandardMerkleTreeData<T extends any[]> {
   format: 'standard-v1';
@@ -19,14 +25,6 @@ interface StandardMerkleTreeData<T extends any[]> {
   }[];
   leafEncoding: string[];
 }
-
-interface StandardMerkleTreeOptions {
-  sortLeaves: boolean;
-}
-
-const defaultOptions: StandardMerkleTreeOptions = {
-  sortLeaves: true,
-};
 
 export class StandardMerkleTree<T extends any[]> {
   private readonly hashLookup: { [hash: string]: number };
@@ -43,7 +41,7 @@ export class StandardMerkleTree<T extends any[]> {
       ]));
   }
 
-  static of<T extends any[]>(values: T[], leafEncoding: string[], options: Partial<StandardMerkleTreeOptions> = {}) {
+  static of<T extends any[]>(values: T[], leafEncoding: string[], options: StandardMerkleTreeOptions = {}) {
     const { sortLeaves } = { ...defaultOptions, ...options };
 
     const hashedValues = values.map((value, valueIndex) => ({ value, valueIndex, hash: standardLeafHash(value, leafEncoding) }));
