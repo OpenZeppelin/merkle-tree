@@ -19,6 +19,6 @@ export function toBytes(b: BytesLike) : Bytes {
   return typeof b == 'string' ? hexToBytes(b) : b;
 }
 
-export function hex(b: Bytes): string {
-  return '0x' + bytesToHex(b);
+export function toHex(b: BytesLike): string {
+  return '0x' + bytesToHex(toBytes(b));
 }

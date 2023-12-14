@@ -1,10 +1,10 @@
 import assert from 'assert/strict';
 import { keccak256 } from 'ethereum-cryptography/keccak';
-import { hex } from './bytes';
+import { toHex } from './bytes';
 import { StandardMerkleTree } from './standard';
 
 const zeroBytes = new Uint8Array(32);
-const zero = hex(zeroBytes);
+const zero = toHex(zeroBytes);
 
 describe('standard merkle tree', () => {
   for (const opts of [
@@ -106,37 +106,6 @@ describe('standard merkle tree', () => {
         assert.throws(
           () => tree.getProof(leaves.length),
           /^Error: Index out of bounds$/,
-        );
-      });
-
-      it('reject unrecognized tree dump', () => {
-        assert.throws(
-          () => StandardMerkleTree.load({ format: 'nonstandard' } as any),
-          /^Error: Unknown format 'nonstandard'$/,
-        );
-      });
-
-      it('reject malformed tree dump', () => {
-        const loadedTree1 = StandardMerkleTree.load({
-          format: 'standard-v1',
-          tree: [zero],
-          values: [{ value: ['0'], treeIndex: 0 }],
-          leafEncoding: ['uint256'],
-        });
-        assert.throws(
-          () => loadedTree1.getProof(0),
-          /^Error: Merkle tree does not contain the expected value$/,
-        );
-
-        const loadedTree2 = StandardMerkleTree.load({
-          format: 'standard-v1',
-          tree: [zero, zero, hex(keccak256(keccak256(zeroBytes)))],
-          values: [{ value: ['0'], treeIndex: 2 }],
-          leafEncoding: ['uint256'],
-        });
-        assert.throws(
-          () => loadedTree2.getProof(0),
-          /^Error: Unable to prove value$/,
         );
       });
     });
@@ -245,37 +214,39 @@ describe('standard merkle tree with raw leaves', () => {
           /^Error: Index out of bounds$/,
         );
       });
-
-      it('reject unrecognized tree dump', () => {
-        assert.throws(
-          () => StandardMerkleTree.load({ format: 'nonstandard' } as any),
-          /^Error: Unknown format 'nonstandard'$/,
-        );
-      });
-
-      it('reject malformed tree dump', () => {
-        const loadedTree1 = StandardMerkleTree.load({
-          format: 'standard-v1',
-          tree: [zero],
-          values: [{ value: ['0'], treeIndex: 0 }],
-          leafEncoding: ['uint256'],
-        });
-        assert.throws(
-          () => loadedTree1.getProof(0),
-          /^Error: Merkle tree does not contain the expected value$/,
-        );
-
-        const loadedTree2 = StandardMerkleTree.load({
-          format: 'standard-v1',
-          tree: [zero, zero, hex(keccak256(keccak256(zeroBytes)))],
-          values: [{ value: ['0'], treeIndex: 2 }],
-          leafEncoding: ['uint256'],
-        });
-        assert.throws(
-          () => loadedTree2.getProof(0),
-          /^Error: Unable to prove value$/,
-        );
-      });
     });
   }
+});
+
+describe('tree dumps', () => {
+  it('reject unrecognized tree dump', () => {
+    assert.throws(
+      () => StandardMerkleTree.load({ format: 'nonstandard' } as any),
+      /^Error: Unknown format 'nonstandard'$/,
+    );
+  });
+
+  it('reject malformed tree dump', () => {
+    const loadedTree1 = StandardMerkleTree.load({
+      format: 'standard-v1',
+      tree: [zero],
+      values: [{ value: ['0'], treeIndex: 0 }],
+      leafEncoding: ['uint256'],
+    });
+    assert.throws(
+      () => loadedTree1.getProof(0),
+      /^Error: Merkle tree does not contain the expected value$/,
+    );
+
+    const loadedTree2 = StandardMerkleTree.load({
+      format: 'standard-v1',
+      tree: [zero, zero, toHex(keccak256(keccak256(zeroBytes)))],
+      values: [{ value: ['0'], treeIndex: 2 }],
+      leafEncoding: ['uint256'],
+    });
+    assert.throws(
+      () => loadedTree2.getProof(0),
+      /^Error: Unable to prove value$/,
+    );
+  });
 });

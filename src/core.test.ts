@@ -2,7 +2,7 @@ import fc from 'fast-check';
 import assert from 'assert/strict';
 import { equalsBytes } from 'ethereum-cryptography/utils';
 import { makeMerkleTree, getProof, processProof, getMultiProof, processMultiProof, isValidMerkleTree, renderMerkleTree } from './core';
-import { compareBytes, hex } from './bytes';
+import { compareBytes, toHex } from './bytes';
 import { keccak256 } from 'ethereum-cryptography/keccak';
 
 const zero = new Uint8Array(32);
@@ -94,6 +94,6 @@ describe('core error conditions', () => {
 
 class PrettyBytes extends Uint8Array {
   [fc.toStringMethod]() {
-    return hex(this);
+    return toHex(this);
   }
 }
