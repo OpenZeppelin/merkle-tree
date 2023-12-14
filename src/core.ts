@@ -1,9 +1,9 @@
-import { keccak256 } from 'ethereum-cryptography/keccak';
-import { concatBytes, bytesToHex, equalsBytes } from 'ethereum-cryptography/utils';
-import { Bytes, compareBytes } from './bytes';
+import { keccak256, hexlify, getBytes, concat } from 'ethers';
 import { throwError } from './utils/throw-error';
 
-const hashPair = (a: Bytes, b: Bytes) => keccak256(concatBytes(...[a, b].sort(compareBytes)));
+type Bytes = string;
+
+const hashPair = (a: Bytes, b: Bytes) => keccak256(concat([a, b].map(hexlify).sort()));
 
 const leftChildIndex  = (i: number) => 2 * i + 1;
 const rightChildIndex = (i: number) => 2 * i + 2;
@@ -13,12 +13,12 @@ const siblingIndex    = (i: number) => i > 0 ? i - (-1) ** (i % 2)     : throwEr
 const isTreeNode        = (tree: unknown[], i: number) => i >= 0 && i < tree.length;
 const isInternalNode    = (tree: unknown[], i: number) => isTreeNode(tree, leftChildIndex(i));
 const isLeafNode        = (tree: unknown[], i: number) => isTreeNode(tree, i) && !isInternalNode(tree, i);
-const isValidMerkleNode = (node: Bytes) => node instanceof Uint8Array && node.length === 32;
+const isValidMerkleNode = (node: Bytes) => getBytes(node).length === 32;
 
 const checkTreeNode        = (tree: unknown[], i: number) => void (isTreeNode(tree, i)     || throwError('Index is not in tree'));
 const checkInternalNode    = (tree: unknown[], i: number) => void (isInternalNode(tree, i) || throwError('Index is not an internal tree node'));
 const checkLeafNode        = (tree: unknown[], i: number) => void (isLeafNode(tree, i)     || throwError('Index is not a leaf'));
-const checkValidMerkleNode = (node: Bytes)                => void (isValidMerkleNode(node) || throwError('Merkle tree nodes must be Uint8Array of length 32'));
+const checkValidMerkleNode = (node: Bytes)            => void (isValidMerkleNode(node) || throwError('Merkle tree nodes must be Uint8Array of length 32'));
 
 export function makeMerkleTree(leaves: Bytes[]): Bytes[] {
   leaves.forEach(checkValidMerkleNode);
@@ -148,7 +148,7 @@ export function isValidMerkleTree(tree: Bytes[]): boolean {
       if (l < tree.length) {
         return false;
       }
-    } else if (!equalsBytes(node, hashPair(tree[l]!, tree[r]!))) {
+    } else if (node !== hashPair(tree[l]!, tree[r]!)) {
       return false;
     }
   }
@@ -172,7 +172,7 @@ export function renderMerkleTree(tree: Bytes[]): string {
       path.slice(0, -1).map(p => ['   ', '│  '][p]).join('') +
       path.slice(-1).map(p => ['└─ ', '├─ '][p]).join('') +
       i + ') ' +
-      bytesToHex(tree[i]!)
+      hexlify(tree[i]!)
     );
 
     if (rightChildIndex(i) < tree.length) {

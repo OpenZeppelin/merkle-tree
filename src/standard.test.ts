@@ -1,10 +1,6 @@
 import assert from 'assert/strict';
-import { keccak256 } from 'ethereum-cryptography/keccak';
-import { hex } from './bytes';
+import { ZeroHash as zero, keccak256 } from 'ethers';
 import { StandardMerkleTree } from './standard';
-
-const zeroBytes = new Uint8Array(32);
-const zero = hex(zeroBytes);
 
 const characters = (s: string) => {
   const l = s.split('').map(c => [c]);
@@ -72,12 +68,13 @@ describe('standard merkle tree', () => {
   it('renders tree representation', () => {
     const { t } = characters('abc');
 
-    const expected = `\
-0) f2129b5a697531ef818f644564a6552b35c549722385bc52aa7fe46c0b5f46b1
-├─ 1) fa914d99a18dc32d9725b3ef1c50426deb40ec8d0885dac8edcc5bfd6d030016
-│  ├─ 3) 9c15a6a0eaeed500fd9eed4cbeab71f797cefcc67bfd46683e4d2e6ff7f06d1c
-│  └─ 4) 19ba6c6333e0e9a15bf67523e0676e2f23eb8e574092552d5e888c64a4bb3681
-└─ 2) 9cf5a63718145ba968a01c1d557020181c5b252f665cf7386d370eddb176517b`;
+    const expected = [
+      '0) 0xf2129b5a697531ef818f644564a6552b35c549722385bc52aa7fe46c0b5f46b1',
+      '├─ 1) 0xfa914d99a18dc32d9725b3ef1c50426deb40ec8d0885dac8edcc5bfd6d030016',
+      '│  ├─ 3) 0x9c15a6a0eaeed500fd9eed4cbeab71f797cefcc67bfd46683e4d2e6ff7f06d1c',
+      '│  └─ 4) 0x19ba6c6333e0e9a15bf67523e0676e2f23eb8e574092552d5e888c64a4bb3681',
+      '└─ 2) 0x9cf5a63718145ba968a01c1d557020181c5b252f665cf7386d370eddb176517b',
+    ].join('\n');
 
     assert.equal(t.render(), expected);
   });
@@ -119,7 +116,7 @@ describe('standard merkle tree', () => {
 
     const t2 = StandardMerkleTree.load({
       format: 'standard-v1',
-      tree: [zero, zero, hex(keccak256(keccak256(zeroBytes)))],
+      tree: [zero, zero, keccak256(keccak256(zero))],
       values: [{ value: ['0'], treeIndex: 2 }],
       leafEncoding: ['uint256'],
     });
