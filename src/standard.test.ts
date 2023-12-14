@@ -48,7 +48,7 @@ describe('standard merkle tree', () => {
       });
 
       it('generates valid multiproofs', () => {
-        for (const ids of [[], [0, 1], [0, 1, 5], [1, 3, 4, 5], [0, 2, 4, 5], [0, 1, 2, 3, 4, 5]]) {
+        for (const ids of [[], [0, 1], [0, 1, 5], [1, 3, 4, 5], [0, 2, 4, 5], [0, 1, 2, 3, 4, 5], [4, 1, 5, 0, 2]]) {
           const proof1 = tree.getMultiProof(ids);
           const proof2 = tree.getMultiProof(ids.map(i => leaves[i]!));
 
