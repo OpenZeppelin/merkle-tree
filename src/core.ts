@@ -1,9 +1,6 @@
-import type { BytesLike, HexString } from './bytes'
-import { toHex, toBytes, concat, compare } from './bytes';
-
 import { keccak256 } from 'ethers';
+import { BytesLike, HexString, toHex, toBytes, concat, compare } from './bytes';
 import { throwError } from './utils/throw-error';
-
 
 const hashPair = (a: BytesLike, b: BytesLike): HexString => keccak256(concat([a, b].sort(compare)));
 
