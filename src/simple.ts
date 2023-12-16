@@ -3,6 +3,7 @@ import {
   HexString,
   isBytesLike,
   toHex,
+  toBytes,
   compare,
 } from './bytes';
 
@@ -41,6 +42,12 @@ export class SimpleMerkleTree {
 
   static of(values: BytesLike[], options: MerkleTreeOptions = {}) {
     const { sortLeaves } = { ...defaultOptions, ...options };
+
+    values.forEach((value, i) => {
+      if (toBytes(value).length !== 32) {
+        throwError(`${toHex(value)} is not a valid 32 bytes object (pos: ${i})`);
+      }
+    });
 
     const hashedValues = values.map((value, valueIndex) => ({ value, valueIndex, hash: toHex(value) }));
 
