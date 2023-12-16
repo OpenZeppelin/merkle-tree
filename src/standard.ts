@@ -3,11 +3,11 @@ import {
   HexString,
   toHex,
   compare,
-} from './types/bytes';
+} from './bytes';
 
 import {
   MerkleTreeData,
-} from './types/data';
+} from './format';
 
 import {
   MultiProof,
@@ -22,7 +22,7 @@ import {
 
 import { AbiCoder, keccak256 } from 'ethers';
 
-import { MerkleTreeOptions, defaultOptions} from './utils/options';
+import { MerkleTreeOptions, defaultOptions} from './options';
 import { checkBounds } from './utils/check-bounds';
 import { throwError } from './utils/throw-error';
 

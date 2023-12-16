@@ -2,7 +2,7 @@ import fc from 'fast-check';
 import assert from 'assert/strict';
 import { ZeroHash as zero, keccak256 } from 'ethers';
 import { makeMerkleTree, getProof, processProof, getMultiProof, processMultiProof, isValidMerkleTree, renderMerkleTree } from './core';
-import { toHex, compare } from './types/bytes';
+import { toHex, compare } from './bytes';
 
 const leaf = fc.uint8Array({ minLength: 32, maxLength: 32 }).map(toHex);
 const leaves = fc.array(leaf, { minLength: 1 });

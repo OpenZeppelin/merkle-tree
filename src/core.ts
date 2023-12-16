@@ -1,5 +1,5 @@
-import type { BytesLike, HexString } from './types/bytes'
-import { toHex, toBytes, concat, compare } from './types/bytes';
+import type { BytesLike, HexString } from './bytes'
+import { toHex, toBytes, concat, compare } from './bytes';
 
 import { keccak256 } from 'ethers';
 import { throwError } from './utils/throw-error';
