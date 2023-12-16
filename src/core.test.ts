@@ -1,9 +1,10 @@
 import fc from 'fast-check';
 import assert from 'assert/strict';
-import { ZeroHash as zero, hexlify, keccak256 } from 'ethers';
+import { ZeroHash as zero, keccak256 } from 'ethers';
 import { makeMerkleTree, getProof, processProof, getMultiProof, processMultiProof, isValidMerkleTree, renderMerkleTree } from './core';
+import { toHex, compare } from './types/bytes';
 
-const leaf = fc.uint8Array({ minLength: 32, maxLength: 32 }).map(hexlify);
+const leaf = fc.uint8Array({ minLength: 32, maxLength: 32 }).map(toHex);
 const leaves = fc.array(leaf, { minLength: 1 });
 const leavesAndIndex = leaves.chain(xs => fc.tuple(fc.constant(xs), fc.nat({ max: xs.length - 1 })));
 const leavesAndIndices = leaves.chain(xs => fc.tuple(fc.constant(xs), fc.uniqueArray(fc.nat({ max: xs.length - 1 }))));
@@ -75,7 +76,7 @@ describe('core error conditions', () => {
     const tree = makeMerkleTree([leaf, zero]);
 
     const badMultiProof = {
-      leaves: [128, 129].map(n => keccak256(Uint8Array.of(n))).sort(),
+      leaves: [128, 129].map(n => keccak256(Uint8Array.of(n))).sort(compare),
       proof: [leaf, leaf],
       proofFlags: [true, true, false],
     };

@@ -3,6 +3,7 @@ import {
   HexString,
   isBytesLike,
   toHex,
+  compare,
 } from './types/bytes';
 
 import {
@@ -44,7 +45,7 @@ export class SimpleMerkleTree {
     const hashedValues = values.map((value, valueIndex) => ({ value, valueIndex, hash: toHex(value) }));
 
     if (sortLeaves) {
-      hashedValues.sort((a, b) => a.hash.localeCompare(b.hash));
+      hashedValues.sort((a, b) => compare(a.hash, b.hash));
     }
 
     const tree = makeMerkleTree(hashedValues.map(v => v.hash));

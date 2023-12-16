@@ -1,11 +1,11 @@
 import type { BytesLike, HexString } from './types/bytes'
-import { toHex, toBytes, concat } from './types/bytes';
+import { toHex, toBytes, concat, compare } from './types/bytes';
 
 import { keccak256 } from 'ethers';
 import { throwError } from './utils/throw-error';
 
 
-const hashPair = (a: BytesLike, b: BytesLike): HexString => keccak256(concat([a, b].map(toHex).sort()));
+const hashPair = (a: BytesLike, b: BytesLike): HexString => keccak256(concat([a, b].sort(compare)));
 
 const leftChildIndex  = (i: number) => 2 * i + 1;
 const rightChildIndex = (i: number) => 2 * i + 2;
