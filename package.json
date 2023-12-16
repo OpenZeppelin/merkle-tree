@@ -21,8 +21,7 @@
   "author": "Francisco Giordano <fg@frang.io>",
   "license": "MIT",
   "dependencies": {
-    "@ethersproject/abi": "^5.7.0",
-    "ethereum-cryptography": "^1.1.2"
+    "ethers": "^6.9.0"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.0",

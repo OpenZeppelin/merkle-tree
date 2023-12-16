@@ -1,9 +1,11 @@
-import { keccak256 } from 'ethereum-cryptography/keccak';
-import { concatBytes, bytesToHex, equalsBytes } from 'ethereum-cryptography/utils';
-import { Bytes, compareBytes } from './bytes';
+import type { BytesLike, HexString } from './types/bytes'
+import { toHex, toBytes, concat } from './types/bytes';
+
+import { keccak256 } from 'ethers';
 import { throwError } from './utils/throw-error';
 
-const hashPair = (a: Bytes, b: Bytes) => keccak256(concatBytes(...[a, b].sort(compareBytes)));
+
+const hashPair = (a: BytesLike, b: BytesLike): HexString => keccak256(concat([a, b].map(toHex).sort()));
 
 const leftChildIndex  = (i: number) => 2 * i + 1;
 const rightChildIndex = (i: number) => 2 * i + 2;
@@ -13,24 +15,24 @@ const siblingIndex    = (i: number) => i > 0 ? i - (-1) ** (i % 2)     : throwEr
 const isTreeNode        = (tree: unknown[], i: number) => i >= 0 && i < tree.length;
 const isInternalNode    = (tree: unknown[], i: number) => isTreeNode(tree, leftChildIndex(i));
 const isLeafNode        = (tree: unknown[], i: number) => isTreeNode(tree, i) && !isInternalNode(tree, i);
-const isValidMerkleNode = (node: Bytes) => node instanceof Uint8Array && node.length === 32;
+const isValidMerkleNode = (node: BytesLike) => toBytes(node).length === 32;
 
 const checkTreeNode        = (tree: unknown[], i: number) => void (isTreeNode(tree, i)     || throwError('Index is not in tree'));
 const checkInternalNode    = (tree: unknown[], i: number) => void (isInternalNode(tree, i) || throwError('Index is not an internal tree node'));
 const checkLeafNode        = (tree: unknown[], i: number) => void (isLeafNode(tree, i)     || throwError('Index is not a leaf'));
-const checkValidMerkleNode = (node: Bytes)                => void (isValidMerkleNode(node) || throwError('Merkle tree nodes must be Uint8Array of length 32'));
+const checkValidMerkleNode = (node: BytesLike)            => void (isValidMerkleNode(node) || throwError('Merkle tree nodes must be Uint8Array of length 32'));
 
-export function makeMerkleTree(leaves: Bytes[]): Bytes[] {
+export function makeMerkleTree(leaves: BytesLike[]): HexString[] {
   leaves.forEach(checkValidMerkleNode);
 
   if (leaves.length === 0) {
     throw new Error('Expected non-zero number of leaves');
   }
 
-  const tree = new Array<Bytes>(2 * leaves.length - 1);
+  const tree = new Array<HexString>(2 * leaves.length - 1);
 
   for (const [i, leaf] of leaves.entries()) {
-    tree[tree.length - 1 - i] = leaf;
+    tree[tree.length - 1 - i] = toHex(leaf);
   }
   for (let i = tree.length - 1 - leaves.length; i >= 0; i--) {
     tree[i] = hashPair(
@@ -42,7 +44,7 @@ export function makeMerkleTree(leaves: Bytes[]): Bytes[] {
   return tree;
 }
 
-export function getProof(tree: Bytes[], index: number): Bytes[] {
+export function getProof(tree: BytesLike[], index: number): HexString[] {
   checkLeafNode(tree, index);
 
   const proof = [];
@@ -50,14 +52,14 @@ export function getProof(tree: Bytes[], index: number): Bytes[] {
     proof.push(tree[siblingIndex(index)]!);
     index = parentIndex(index);
   }
-  return proof;
+  return proof.map(toHex);
 }
 
-export function processProof(leaf: Bytes, proof: Bytes[]): Bytes {
+export function processProof(leaf: BytesLike, proof: BytesLike[]): HexString {
   checkValidMerkleNode(leaf);
   proof.forEach(checkValidMerkleNode);
 
-  return proof.reduce(hashPair, leaf);
+  return toHex(proof.reduce(hashPair, leaf));
 }
 
 export interface MultiProof<T, L = T> {
@@ -66,7 +68,7 @@ export interface MultiProof<T, L = T> {
   proofFlags: boolean[];
 }
 
-export function getMultiProof(tree: Bytes[], indices: number[]): MultiProof<Bytes> {
+export function getMultiProof(tree: BytesLike[], indices: number[]): MultiProof<HexString> {
   indices.forEach(i => checkLeafNode(tree, i));
   indices.sort((a, b) => b - a);
 
@@ -98,13 +100,13 @@ export function getMultiProof(tree: Bytes[], indices: number[]): MultiProof<Byte
   }
 
   return {
-    leaves: indices.map(i => tree[i]!),
-    proof,
+    leaves: indices.map(i => tree[i]!).map(toHex),
+    proof: proof.map(toHex),
     proofFlags,
   };
 }
 
-export function processMultiProof(multiproof: MultiProof<Bytes>): Bytes {
+export function processMultiProof(multiproof: MultiProof<BytesLike>): HexString {
   multiproof.leaves.forEach(checkValidMerkleNode);
   multiproof.proof.forEach(checkValidMerkleNode);
 
@@ -132,10 +134,10 @@ export function processMultiProof(multiproof: MultiProof<Bytes>): Bytes {
       throw new Error('Broken invariant');
   }
 
-  return stack.pop() ?? proof.shift()!;
+  return toHex(stack.pop() ?? proof.shift()!);
 }
 
-export function isValidMerkleTree(tree: Bytes[]): boolean {
+export function isValidMerkleTree(tree: BytesLike[]): boolean {
   for (const [i, node] of tree.entries()) {
     if (!isValidMerkleNode(node)) {
       return false;
@@ -148,7 +150,7 @@ export function isValidMerkleTree(tree: Bytes[]): boolean {
       if (l < tree.length) {
         return false;
       }
-    } else if (!equalsBytes(node, hashPair(tree[l]!, tree[r]!))) {
+    } else if (node !== hashPair(tree[l]!, tree[r]!)) {
       return false;
     }
   }
@@ -156,7 +158,7 @@ export function isValidMerkleTree(tree: Bytes[]): boolean {
   return tree.length > 0;
 }
 
-export function renderMerkleTree(tree: Bytes[]): string {
+export function renderMerkleTree(tree: BytesLike[]): HexString {
   if (tree.length === 0) {
     throw new Error('Expected non-zero number of nodes');
   }
@@ -172,7 +174,7 @@ export function renderMerkleTree(tree: Bytes[]): string {
       path.slice(0, -1).map(p => ['   ', '│  '][p]).join('') +
       path.slice(-1).map(p => ['└─ ', '├─ '][p]).join('') +
       i + ') ' +
-      bytesToHex(tree[i]!)
+      toHex(tree[i]!)
     );
 
     if (rightChildIndex(i) < tree.length) {

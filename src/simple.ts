@@ -20,37 +20,28 @@ import {
   renderMerkleTree
 } from './core';
 
-import { AbiCoder, keccak256 } from 'ethers';
-
 import { MerkleTreeOptions, defaultOptions} from './utils/options';
 import { checkBounds } from './utils/check-bounds';
 import { throwError } from './utils/throw-error';
 
-export type StandardMerkleTreeData<T> = MerkleTreeData<T> & { leafEncoding: string[] };
-
-export function standardLeafHash<T extends any[]>(value: T, types: string[]) : HexString {
-  return keccak256(keccak256(AbiCoder.defaultAbiCoder().encode(types, value)));
-}
-
-export class StandardMerkleTree<T extends any[]> {
+export class SimpleMerkleTree {
   private readonly hashLookup: { [hash: HexString]: number };
 
   private constructor(
     private readonly tree: HexString[],
-    private readonly values: { value: T, treeIndex: number }[],
-    private readonly leafEncoding: string[],
+    private readonly values: { value: HexString, treeIndex: number }[],
   ) {
     this.hashLookup =
       Object.fromEntries(values.map(({ value }, valueIndex) => [
-        toHex(standardLeafHash(value, leafEncoding)),
+        toHex(value),
         valueIndex,
       ]));
   }
 
-  static of<T extends any[]>(values: T[], leafEncoding: string[], options: MerkleTreeOptions = {}) {
+  static of(values: BytesLike[], options: MerkleTreeOptions = {}) {
     const { sortLeaves } = { ...defaultOptions, ...options };
 
-    const hashedValues = values.map((value, valueIndex) => ({ value, valueIndex, hash: standardLeafHash(value, leafEncoding) }));
+    const hashedValues = values.map((value, valueIndex) => ({ value, valueIndex, hash: toHex(value) }));
 
     if (sortLeaves) {
       hashedValues.sort((a, b) => a.hash.localeCompare(b.hash));
@@ -58,43 +49,41 @@ export class StandardMerkleTree<T extends any[]> {
 
     const tree = makeMerkleTree(hashedValues.map(v => v.hash));
 
-    const indexedValues = values.map(value => ({ value, treeIndex: 0 }));
+    const indexedValues = values.map(value => ({ value: toHex(value), treeIndex: 0 }));
     for (const [leafIndex, { valueIndex }] of hashedValues.entries()) {
       indexedValues[valueIndex]!.treeIndex = tree.length - leafIndex - 1;
     }
 
-    return new StandardMerkleTree(tree, indexedValues, leafEncoding);
+    return new SimpleMerkleTree(tree, indexedValues);
   }
 
-  static load<T extends any[]>(data: StandardMerkleTreeData<T>): StandardMerkleTree<T> {
+  static load(data: MerkleTreeData<BytesLike>): SimpleMerkleTree {
     if (data.format !== 'standard-v1') {
       throwError(`Unknown format '${data.format}'`);
     }
-    return new StandardMerkleTree(
+    return new SimpleMerkleTree(
       data.tree,
-      data.values,
-      data.leafEncoding,
+      data.values.map(({ value, treeIndex }) => ({ value: toHex(value), treeIndex })),
     );
   }
 
-  static verify<T extends any[]>(root: BytesLike, leafEncoding: string[], leaf: T, proof: BytesLike[]): boolean {
-    return toHex(root) === processProof(standardLeafHash(leaf, leafEncoding), proof);
+  static verify(root: BytesLike, leaf: BytesLike, proof: BytesLike[]): boolean {
+    return toHex(root) === processProof(leaf, proof);
   }
 
-  static verifyMultiProof<T extends any[]>(root: BytesLike, leafEncoding: string[], multiproof: MultiProof<BytesLike, T>): boolean {
+  static verifyMultiProof(root: BytesLike, multiproof: MultiProof<BytesLike, BytesLike>): boolean {
     return toHex(root) === processMultiProof({
-      leaves: multiproof.leaves.map(leaf => standardLeafHash(leaf, leafEncoding)),
+      leaves: multiproof.leaves,
       proof: multiproof.proof,
       proofFlags: multiproof.proofFlags,
     });
   }
 
-  dump(): StandardMerkleTreeData<T> {
+  dump(): MerkleTreeData<BytesLike> {
     return {
       format:      'standard-v1',
       tree:         this.tree,
       values:       this.values,
-      leafEncoding: this.leafEncoding,
     };
   }
 
@@ -106,7 +95,7 @@ export class StandardMerkleTree<T extends any[]> {
     return this.tree[0]!;
   }
 
-  *entries(): Iterable<[number, T]> {
+  *entries(): Iterable<[number, HexString]> {
     for (const [i, { value }] of this.values.entries()) {
       yield [i, value];
     }
@@ -121,15 +110,11 @@ export class StandardMerkleTree<T extends any[]> {
     }
   }
 
-  leafHash(leaf: T): HexString {
-    return standardLeafHash(leaf, this.leafEncoding);
+  leafLookup(leaf: BytesLike): number {
+    return this.hashLookup[toHex(leaf)] ?? throwError('Leaf is not in tree');
   }
 
-  leafLookup(leaf: T): number {
-    return this.hashLookup[this.leafHash(leaf)] ?? throwError('Leaf is not in tree');
-  }
-
-  getProof(leaf: number | T): HexString[] {
+  getProof(leaf: number | BytesLike): HexString[] {
     // input validity
     const valueIndex = typeof leaf === 'number' ? leaf : this.leafLookup(leaf);
     this.validateValue(valueIndex);
@@ -147,7 +132,7 @@ export class StandardMerkleTree<T extends any[]> {
     return proof;
   }
 
-  getMultiProof(leaves: (number | T)[]): MultiProof<HexString, T> {
+  getMultiProof(leaves: (number | BytesLike)[]): MultiProof<HexString, HexString> {
     // input validity
     const valueIndices = leaves.map(leaf => typeof leaf === 'number' ? leaf : this.leafLookup(leaf));
     for (const valueIndex of valueIndices) this.validateValue(valueIndex);
@@ -163,13 +148,13 @@ export class StandardMerkleTree<T extends any[]> {
 
     // return multiproof in hex format
     return {
-      leaves:     proof.leaves.map(hash => this.values[this.hashLookup[hash]!]!.value),
+      leaves:     proof.leaves,
       proof:      proof.proof,
       proofFlags: proof.proofFlags,
     }
   }
 
-  verify(leaf: number | T, proof: BytesLike[]): boolean {
+  verify(leaf: number | BytesLike, proof: BytesLike[]): boolean {
     return this._verify(this.getLeafHash(leaf), proof);
   }
 
@@ -177,7 +162,7 @@ export class StandardMerkleTree<T extends any[]> {
     return this.root === processProof(leafHash, proof);
   }
 
-  verifyMultiProof(multiproof: MultiProof<BytesLike, number | T>): boolean {
+  verifyMultiProof(multiproof: MultiProof<BytesLike, number | BytesLike>): boolean {
     return this._verifyMultiProof({
       leaves: multiproof.leaves.map(l => this.getLeafHash(l)),
       proof: multiproof.proof,
@@ -191,20 +176,19 @@ export class StandardMerkleTree<T extends any[]> {
 
   private validateValue(valueIndex: number): HexString {
     checkBounds(this.values, valueIndex);
-    const { value, treeIndex } = this.values[valueIndex]!;
+    const { value: leaf, treeIndex } = this.values[valueIndex]!;
     checkBounds(this.tree, treeIndex);
-    const leaf = standardLeafHash(value, this.leafEncoding);
     if (leaf !== this.tree[treeIndex]!) {
       throwError('Merkle tree does not contain the expected value');
     }
     return leaf;
   }
 
-  private getLeafHash(leaf: number | T): HexString {
-    if (typeof leaf === 'number') {
-      return this.validateValue(leaf);
+  private getLeafHash(leaf: number | BytesLike): HexString {
+    if (isBytesLike(leaf)) {
+      return toHex(leaf);
     } else {
-      return standardLeafHash(leaf, this.leafEncoding);
+      return this.validateValue(leaf);
     }
   }
 }
