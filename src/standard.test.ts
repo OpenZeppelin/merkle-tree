@@ -1,12 +1,13 @@
 import assert from 'assert/strict';
 import { keccak256 } from 'ethereum-cryptography/keccak';
 import { hex } from './bytes';
-import { StandardMerkleTree, StandardMerkleTreeOptions } from './standard';
+import { MerkleTreeOptions } from './options';
+import { StandardMerkleTree } from './standard';
 
 const zeroBytes = new Uint8Array(32);
 const zero = hex(zeroBytes);
 
-const makeTree = (s: string, opts: StandardMerkleTreeOptions = {}) => {
+const makeTree = (s: string, opts: MerkleTreeOptions = {}) => {
   const l = s.split('').map(c => [c]);
   const t = StandardMerkleTree.of(l, ['string'], opts);
   return { l, t };

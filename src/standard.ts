@@ -1,20 +1,10 @@
 import { equalsBytes, hexToBytes } from 'ethereum-cryptography/utils';
 import { Bytes, compareBytes, hex } from './bytes';
 import { getProof, isValidMerkleTree, makeMerkleTree, processProof, renderMerkleTree, MultiProof, getMultiProof, processMultiProof } from './core';
+import { MerkleTreeOptions, withDefault } from './options';
 import { checkBounds } from './utils/check-bounds';
 import { throwError } from './utils/throw-error';
 import { standardLeafHash } from './utils/standard-leaf-hash';
-
-// MerkleTree building options
-export type StandardMerkleTreeOptions = Partial<{
-  sortLeaves: boolean;
-}>;
-
-// For backward compatibility reasons, leaves are sorted by default.
-// This can be disabled for usecases where leaves ordering needs to be preserved
-const defaultOptions: Required<StandardMerkleTreeOptions> = {
-  sortLeaves: true,
-};
 
 interface StandardMerkleTreeData<T extends any[]> {
   format: 'standard-v1';
@@ -41,8 +31,8 @@ export class StandardMerkleTree<T extends any[]> {
       ]));
   }
 
-  static of<T extends any[]>(values: T[], leafEncoding: string[], options: StandardMerkleTreeOptions = {}) {
-    const { sortLeaves } = { ...defaultOptions, ...options };
+  static of<T extends any[]>(values: T[], leafEncoding: string[], options: MerkleTreeOptions = {}) {
+    const { sortLeaves } = withDefault(options);
 
     const hashedValues = values.map((value, valueIndex) => ({ value, valueIndex, hash: standardLeafHash(value, leafEncoding) }));
 
