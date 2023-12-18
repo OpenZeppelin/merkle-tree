@@ -21,7 +21,11 @@
   "author": "Francisco Giordano <fg@frang.io>",
   "license": "MIT",
   "dependencies": {
-    "ethers": "^6.9.0"
+    "@ethersproject/abi": "^5.7.0",
+    "@ethersproject/bignumber": "^5.7.0",
+    "@ethersproject/bytes": "^5.7.0",
+    "@ethersproject/constants": "^5.7.0",
+    "@ethersproject/keccak256": "^5.7.0"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.0",

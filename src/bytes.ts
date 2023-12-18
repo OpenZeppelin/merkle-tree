@@ -1,17 +1,18 @@
-import type { HexString, BytesLike } from 'ethers/lib.commonjs/utils/data';
-type Bytes = Uint8Array;
+import type { Bytes, BytesLike } from '@ethersproject/bytes';
+type HexString = string;
 
 import {
   isBytesLike,
-  getBytes as toBytes,
+  arrayify as toBytes,
   hexlify as toHex,
   concat,
-  toBigInt,
-} from 'ethers';
+} from '@ethersproject/bytes';
+
+import { BigNumber } from '@ethersproject/bignumber';
 
 function compare(a: BytesLike, b: BytesLike): number {
-  const diff = toBigInt(a) - toBigInt(b);
-  return diff > 0 ? 1 : diff < 0 ? -1 : 0;
+  const diff = BigNumber.from(a).sub(b);
+  return diff.isZero() ? 0 : diff.isNegative() ? -1 : 1;
 }
 
 export type { HexString, Bytes, BytesLike };

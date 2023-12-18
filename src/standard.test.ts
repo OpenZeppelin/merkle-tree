@@ -1,5 +1,6 @@
 import assert from 'assert/strict';
-import { ZeroHash as zero, keccak256 } from 'ethers';
+import { HashZero as zero } from '@ethersproject/constants';
+import { keccak256 } from '@ethersproject/keccak256';
 import { StandardMerkleTree } from './standard';
 
 describe('standard merkle tree', () => {

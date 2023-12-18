@@ -1,6 +1,7 @@
 import fc from 'fast-check';
 import assert from 'assert/strict';
-import { ZeroHash as zero, keccak256 } from 'ethers';
+import { HashZero as zero } from '@ethersproject/constants';
+import { keccak256 } from '@ethersproject/keccak256';
 import { makeMerkleTree, getProof, processProof, getMultiProof, processMultiProof, isValidMerkleTree, renderMerkleTree } from './core';
 import { toHex, compare } from './bytes';
 

@@ -1,4 +1,4 @@
-import { keccak256 } from 'ethers';
+import { keccak256 } from '@ethersproject/keccak256';
 import { BytesLike, HexString, toHex, toBytes, concat, compare } from './bytes';
 import { throwError } from './utils/throw-error';
 
@@ -49,7 +49,7 @@ export function getProof(tree: BytesLike[], index: number): HexString[] {
     proof.push(tree[siblingIndex(index)]!);
     index = parentIndex(index);
   }
-  return proof.map(toHex);
+  return proof.map(node => toHex(node));
 }
 
 export function processProof(leaf: BytesLike, proof: BytesLike[]): HexString {
@@ -97,8 +97,8 @@ export function getMultiProof(tree: BytesLike[], indices: number[]): MultiProof<
   }
 
   return {
-    leaves: indices.map(i => tree[i]!).map(toHex),
-    proof: proof.map(toHex),
+    leaves: indices.map(i => tree[i]!).map(node => toHex(node)),
+    proof: proof.map(node => toHex(node)),
     proofFlags,
   };
 }

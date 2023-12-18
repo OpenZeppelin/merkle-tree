@@ -20,7 +20,8 @@ import {
   renderMerkleTree
 } from './core';
 
-import { AbiCoder, keccak256 } from 'ethers';
+import { defaultAbiCoder } from '@ethersproject/abi';
+import { keccak256 } from '@ethersproject/keccak256';
 
 import { MerkleTreeOptions, defaultOptions} from './options';
 import { checkBounds } from './utils/check-bounds';
@@ -29,7 +30,7 @@ import { throwError } from './utils/throw-error';
 export type StandardMerkleTreeData<T> = MerkleTreeData<T> & { leafEncoding: string[] };
 
 export function standardLeafHash<T extends any[]>(value: T, types: string[]) : HexString {
-  return keccak256(keccak256(AbiCoder.defaultAbiCoder().encode(types, value)));
+  return keccak256(keccak256(defaultAbiCoder.encode(types, value)));
 }
 
 export class StandardMerkleTree<T extends any[]> {
