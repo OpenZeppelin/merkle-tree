@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Add an option to disable leaf sorting.
+- Added `SimpleMerkleTree` class that supports `bytes32` leaves with no extra hashing.
 
 ## 1.0.5
 
