@@ -1,6 +1,6 @@
 // MerkleTree building options
 export type MerkleTreeOptions = Partial<{
-  // Enable or disable sorted leaves. Sorting is strongly recommended for multiproofs.
+  /** Enable or disable sorted leaves. Sorting is strongly recommended for multiproofs. */
   sortLeaves: boolean;
 }>;
 
