@@ -1,7 +1,7 @@
 import { equalsBytes, hexToBytes } from 'ethereum-cryptography/utils';
 import { Bytes, compareBytes, hex } from './bytes';
 import { getProof, isValidMerkleTree, makeMerkleTree, processProof, renderMerkleTree, MultiProof, getMultiProof, processMultiProof } from './core';
-import { MerkleTreeOptions, withDefault } from './options';
+import { MerkleTreeOptions, defaultOptions } from './options';
 import { checkBounds } from './utils/check-bounds';
 import { throwError } from './utils/throw-error';
 import { standardLeafHash } from './utils/standard-leaf-hash';
@@ -32,7 +32,7 @@ export class StandardMerkleTree<T extends any[]> {
   }
 
   static of<T extends any[]>(values: T[], leafEncoding: string[], options: MerkleTreeOptions = {}) {
-    const { sortLeaves } = withDefault(options);
+    const sortLeaves = options.sortLeaves ?? defaultOptions.sortLeaves;
 
     const hashedValues = values.map((value, valueIndex) => ({ value, valueIndex, hash: standardLeafHash(value, leafEncoding) }));
 
