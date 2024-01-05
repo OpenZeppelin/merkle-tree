@@ -140,7 +140,7 @@ Since this library knows the entire tree, you can generate a multiproof with the
 
 By default, the library orders the leaves according to their hash when building the tree. This is so that a smart contract can build the hashes of a set of leaves and order them correctly without any knowledge of the tree itself. Said differently, it is simpler for a smart contract to process a multiproof for leaves it rebuilt itself if the corresponding tree is ordered.
 
-However, some trees are constructed iteratively, from unsorted data. In that case, the leaves are unlikelly to be sorted. In order for this library to be able to represent such trees, the call to `StandardMerkleTree.of` includes an option to disable sorting. With that option, the leaves are kept in the order in which they were provided. Note that this option has no effect on your ability to generate and verify proofs and multiproofs in JavaScript, but that it may introduce challenges when verifying multiproofs onchain. We recommend only using it for building a representation of trees that are built (onchain) using an iterative process.
+However, some trees are constructed iteratively from unsorted data, causing the leaves to be unsorted as well. For this library to be able to represent such trees, the call to `StandardMerkleTree.of` includes an option to disable sorting. Using that option, the leaves are kept in the order in which they were provided. Note that this option has no effect on your ability to generate and verify proofs and multiproofs in JavaScript, but that it may introduce challenges when verifying multiproofs onchain. We recommend only using it for building a representation of trees that are built (onchain) using an iterative process.
 
 ## API & Examples
 
