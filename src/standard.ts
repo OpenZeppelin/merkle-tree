@@ -1,14 +1,10 @@
-import { keccak256 } from 'ethereum-cryptography/keccak';
 import { equalsBytes, hexToBytes } from 'ethereum-cryptography/utils';
-import { defaultAbiCoder } from '@ethersproject/abi';
 import { Bytes, compareBytes, hex } from './bytes';
 import { getProof, isValidMerkleTree, makeMerkleTree, processProof, renderMerkleTree, MultiProof, getMultiProof, processMultiProof } from './core';
+import { MerkleTreeOptions, defaultOptions } from './options';
 import { checkBounds } from './utils/check-bounds';
 import { throwError } from './utils/throw-error';
-
-function standardLeafHash<T extends any[]>(value: T, types: string[]): Bytes {
-  return keccak256(keccak256(hexToBytes(defaultAbiCoder.encode(types, value))));
-}
+import { standardLeafHash } from './utils/standard-leaf-hash';
 
 interface StandardMerkleTreeData<T extends any[]> {
   format: 'standard-v1';
@@ -35,10 +31,14 @@ export class StandardMerkleTree<T extends any[]> {
       ]));
   }
 
-  static of<T extends any[]>(values: T[], leafEncoding: string[]) {
-    const hashedValues = values
-      .map((value, valueIndex) => ({ value, valueIndex, hash: standardLeafHash(value, leafEncoding) }))
-      .sort((a, b) => compareBytes(a.hash, b.hash));
+  static of<T extends any[]>(values: T[], leafEncoding: string[], options: MerkleTreeOptions = {}) {
+    const sortLeaves = options.sortLeaves ?? defaultOptions.sortLeaves;
+
+    const hashedValues = values.map((value, valueIndex) => ({ value, valueIndex, hash: standardLeafHash(value, leafEncoding) }));
+
+    if (sortLeaves) {
+      hashedValues.sort((a, b) => compareBytes(a.hash, b.hash));
+    }
 
     const tree = makeMerkleTree(hashedValues.map(v => v.hash));
 

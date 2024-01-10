@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added an option to disable leaf sorting.
+
 ## 1.0.5
 
 - Make `processMultiProof` more robust by validating invariants.
