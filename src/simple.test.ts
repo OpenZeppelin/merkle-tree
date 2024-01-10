@@ -105,6 +105,14 @@ describe('simple merkle tree', () => {
           /^Error: Index out of bounds$/,
         );
       });
+
+      it('reject invalid leaf size', () => {
+        const invalidLeaf = zero + '00'; // 33 bytes (all zero)
+        assert.throws(
+          () => SimpleMerkleTree.of([ invalidLeaf ], opts),
+          `Error: ${invalidLeaf} is not a valid 32 bytes object (pos: 0)`,
+        )
+      });
     });
   }
 
