@@ -49,7 +49,7 @@ export class StandardMerkleTree<T extends any[]> {
   }
 
   static of<T extends any[]>(values: T[], leafEncoding: string[], options: MerkleTreeOptions = {}) {
-    const { sortLeaves } = { ...defaultOptions, ...options };
+    const sortLeaves = options.sortLeaves ?? defaultOptions.sortLeaves;
 
     const hashedValues = values.map((value, valueIndex) => ({ value, valueIndex, hash: standardLeafHash(value, leafEncoding) }));
 
