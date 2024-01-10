@@ -10,8 +10,8 @@ describe('simple merkle tree', () => {
     { sortLeaves: false },
   ]) {
     describe(`with options '${JSON.stringify(opts)}'`, () => {
-      const leaves      = 'abcdef'.split('').map(c => keccak256(new TextEncoder().encode(c)));
-      const otherLeaves = 'abc'.split('').map(c => keccak256(new TextEncoder().encode(c)));
+      const leaves      = 'abcdef'.split('').map(c => keccak256(Buffer.from(c)));
+      const otherLeaves = 'abc'.split('').map(c => keccak256(Buffer.from(c)));
       const tree        = SimpleMerkleTree.of(leaves, opts);
       const otherTree   = SimpleMerkleTree.of(otherLeaves, opts);
 
