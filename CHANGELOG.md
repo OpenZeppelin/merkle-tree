@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.6
 
 - Added an option to disable leaf sorting.
 
