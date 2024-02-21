@@ -1,6 +1,9 @@
-import { bytesToHex } from 'ethereum-cryptography/utils';
+import { bytesToHex } from "ethereum-cryptography/utils";
 
 export type Bytes = Uint8Array;
+
+export type HashFn = (data: Bytes) => Bytes;
+export type HashPair = (a: Bytes, b: Bytes) => Bytes;
 
 export function compareBytes(a: Bytes, b: Bytes): number {
   const n = Math.min(a.length, b.length);

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add support for custom hash functions. Default to keccak256.
+
 ## 1.0.6
 
 - Added an option to disable leaf sorting.

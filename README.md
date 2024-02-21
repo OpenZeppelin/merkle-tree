@@ -116,7 +116,7 @@ This library works on "standard" merkle trees designed for Ethereum smart contra
 - The leaves are sorted.
 - The leaves are the result of ABI encoding a series of values.
 - The hash used is Keccak256.
-- The leaves are double-hashed[^1] to prevent [second preimage attacks].
+- The leaves are double-hashed[^1] to prevent [second preimage attacks]. Especially useful when the leaves are double the size of the hash function output.
 
 [second preimage attacks]: https://flawed.net.nz/2018/02/21/attacking-merkle-trees-with-a-second-preimage-attack/
 
@@ -166,9 +166,10 @@ Creates a standard merkle tree out of an array of the elements in the tree, alon
 
 #### Options
 
-| Option       | Description                                                                         | Default |
-| ------------ | ----------------------------------------------------------------------------------- | ------- |
-| `sortLeaves` |   Enable or disable sorted leaves. Sorting is strongly recommended for multiproofs. | `true`  |
+| Option       | Description                                                                         | Default     |
+| ------------ | ----------------------------------------------------------------------------------- | ----------- |
+| `sortLeaves` |   Enable or disable sorted leaves. Sorting is strongly recommended for multiproofs. | `true`      |
+| `hashFn`     |   Custom hashing function.                                                          | `keccak256` |
 
 ### `StandardMerkleTree.verify`
 

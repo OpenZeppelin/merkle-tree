@@ -1,9 +1,6 @@
-import { keccak256 } from 'ethereum-cryptography/keccak';
-import { concatBytes, bytesToHex, equalsBytes } from 'ethereum-cryptography/utils';
-import { Bytes, compareBytes } from './bytes';
+import { bytesToHex, equalsBytes } from 'ethereum-cryptography/utils';
+import { Bytes, HashPair } from './bytes';
 import { throwError } from './utils/throw-error';
-
-const hashPair = (a: Bytes, b: Bytes) => keccak256(concatBytes(...[a, b].sort(compareBytes)));
 
 const leftChildIndex  = (i: number) => 2 * i + 1;
 const rightChildIndex = (i: number) => 2 * i + 2;
@@ -15,12 +12,10 @@ const isInternalNode    = (tree: unknown[], i: number) => isTreeNode(tree, leftC
 const isLeafNode        = (tree: unknown[], i: number) => isTreeNode(tree, i) && !isInternalNode(tree, i);
 const isValidMerkleNode = (node: Bytes) => node instanceof Uint8Array && node.length === 32;
 
-const checkTreeNode        = (tree: unknown[], i: number) => void (isTreeNode(tree, i)     || throwError('Index is not in tree'));
-const checkInternalNode    = (tree: unknown[], i: number) => void (isInternalNode(tree, i) || throwError('Index is not an internal tree node'));
 const checkLeafNode        = (tree: unknown[], i: number) => void (isLeafNode(tree, i)     || throwError('Index is not a leaf'));
 const checkValidMerkleNode = (node: Bytes)                => void (isValidMerkleNode(node) || throwError('Merkle tree nodes must be Uint8Array of length 32'));
 
-export function makeMerkleTree(leaves: Bytes[]): Bytes[] {
+export function makeMerkleTree(leaves: Bytes[], hashPair: HashPair): Bytes[] {
   leaves.forEach(checkValidMerkleNode);
 
   if (leaves.length === 0) {
@@ -53,7 +48,7 @@ export function getProof(tree: Bytes[], index: number): Bytes[] {
   return proof;
 }
 
-export function processProof(leaf: Bytes, proof: Bytes[]): Bytes {
+export function processProof(leaf: Bytes, proof: Bytes[], hashPair: HashPair): Bytes {
   checkValidMerkleNode(leaf);
   proof.forEach(checkValidMerkleNode);
 
@@ -104,7 +99,7 @@ export function getMultiProof(tree: Bytes[], indices: number[]): MultiProof<Byte
   };
 }
 
-export function processMultiProof(multiproof: MultiProof<Bytes>): Bytes {
+export function processMultiProof(multiproof: MultiProof<Bytes>, hashPair: HashPair): Bytes {
   multiproof.leaves.forEach(checkValidMerkleNode);
   multiproof.proof.forEach(checkValidMerkleNode);
 
@@ -135,7 +130,7 @@ export function processMultiProof(multiproof: MultiProof<Bytes>): Bytes {
   return stack.pop() ?? proof.shift()!;
 }
 
-export function isValidMerkleTree(tree: Bytes[]): boolean {
+export function isValidMerkleTree(tree: Bytes[], hashPair: HashPair): boolean {
   for (const [i, node] of tree.entries()) {
     if (!isValidMerkleNode(node)) {
       return false;
