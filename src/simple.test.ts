@@ -161,10 +161,10 @@ describe('simple merkle tree', () => {
         () => SimpleMerkleTree.load({ format: 'nonstandard' } as any),
         /^Error: Unknown format 'nonstandard'$/,
       );
+
       assert.throws(
-        () => SimpleMerkleTree.load({ format: 'standard-v1'} as any, reverseHashPair),
+        () => SimpleMerkleTree.load({ format: 'standard-v1' } as any),
         /^Error: Unknown format 'standard-v1'$/,
-      );
     });
 
     it('reject standard tree dump with a custom hash', () => {
