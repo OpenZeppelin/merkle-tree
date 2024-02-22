@@ -66,7 +66,7 @@ export class SimpleMerkleTree {
   }
 
   static load(data: MerkleTreeData<BytesLike>): SimpleMerkleTree {
-    if (data.format !== 'standard-v1') {
+    if (data.format !== 'simple-v1') {
       throwError(`Unknown format '${data.format}'`);
     }
     return new SimpleMerkleTree(
@@ -89,9 +89,9 @@ export class SimpleMerkleTree {
 
   dump(): MerkleTreeData<BytesLike> {
     return {
-      format:      'standard-v1',
-      tree:         this.tree,
-      values:       this.values,
+      format: 'simple-v1',
+      tree:    this.tree,
+      values:  this.values,
     };
   }
 
