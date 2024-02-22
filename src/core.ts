@@ -17,6 +17,8 @@ const checkInternalNode    = (tree: unknown[], i: number) => void (isInternalNod
 const checkLeafNode        = (tree: unknown[], i: number) => void (isLeafNode(tree, i)     || throwError('Index is not a leaf'));
 const checkValidMerkleNode = (node: BytesLike)            => void (isValidMerkleNode(node) || throwError('Merkle tree nodes must be Uint8Array of length 32'));
 
+export function makeMerkleTree(leaves: BytesLike[]): HexString[];
+export function makeMerkleTree(leaves: BytesLike[], hash: HashPairFn): HexString[];
 export function makeMerkleTree(leaves: BytesLike[], hash?: HashPairFn): HexString[] {
   leaves.forEach(checkValidMerkleNode);
 
@@ -50,6 +52,8 @@ export function getProof(tree: BytesLike[], index: number): HexString[] {
   return proof.map(node => toHex(node));
 }
 
+export function processProof(leaf: BytesLike, proof: BytesLike[]): HexString;
+export function processProof(leaf: BytesLike, proof: BytesLike[], hash: HashPairFn): HexString;
 export function processProof(leaf: BytesLike, proof: BytesLike[], hash?: HashPairFn): HexString {
   checkValidMerkleNode(leaf);
   proof.forEach(checkValidMerkleNode);
@@ -101,6 +105,8 @@ export function getMultiProof(tree: BytesLike[], indices: number[]): MultiProof<
   };
 }
 
+export function processMultiProof(multiproof: MultiProof<BytesLike>): HexString;
+export function processMultiProof(multiproof: MultiProof<BytesLike>, hash: HashPairFn): HexString;
 export function processMultiProof(multiproof: MultiProof<BytesLike>, hash?: HashPairFn): HexString {
   multiproof.leaves.forEach(checkValidMerkleNode);
   multiproof.proof.forEach(checkValidMerkleNode);
@@ -132,6 +138,8 @@ export function processMultiProof(multiproof: MultiProof<BytesLike>, hash?: Hash
   return toHex(stack.pop() ?? proof.shift()!);
 }
 
+export function isValidMerkleTree(tree: BytesLike[]): boolean;
+export function isValidMerkleTree(tree: BytesLike[], hash: HashPairFn): boolean;
 export function isValidMerkleTree(tree: BytesLike[], hash?: HashPairFn): boolean {
   for (const [i, node] of tree.entries()) {
     if (!isValidMerkleNode(node)) {

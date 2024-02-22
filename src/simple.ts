@@ -60,7 +60,9 @@ export class SimpleMerkleTree {
       hashedValues.sort((a, b) => compare(a.hash, b.hash));
     }
 
-    const tree = makeMerkleTree(hashedValues.map(v => v.hash), hashPair);
+    const tree = hashPair
+      ? makeMerkleTree(hashedValues.map(v => v.hash), hashPair)
+      : makeMerkleTree(hashedValues.map(v => v.hash));
 
     const indexedValues = values.map(value => ({ value: toHex(value), treeIndex: 0 }));
     for (const [leafIndex, { valueIndex }] of hashedValues.entries()) {
@@ -70,7 +72,9 @@ export class SimpleMerkleTree {
     return new SimpleMerkleTree(tree, indexedValues, hashPair);
   }
 
-  static load(data: MerkleTreeData<BytesLike>, hashPair ?: HashPairFn): SimpleMerkleTree {
+  static load(data: MerkleTreeData<BytesLike>): SimpleMerkleTree;
+  static load(data: MerkleTreeData<BytesLike>, hashPair: HashPairFn): SimpleMerkleTree;
+  static load(data: MerkleTreeData<BytesLike>, hashPair?: HashPairFn): SimpleMerkleTree {
     switch (data.format) {
       case 'simple-v1':
         if (hashPair !== undefined) throwError(`Format '${data.format}' does not support custom hashing functions`);
@@ -89,19 +93,16 @@ export class SimpleMerkleTree {
     );
   }
 
-  static verify(root: BytesLike, leaf: BytesLike, proof: BytesLike[], hashPair ?: HashPairFn): boolean {
-    return toHex(root) === processProof(leaf, proof, hashPair);
+  static verify(root: BytesLike, leaf: BytesLike, proof: BytesLike[]): boolean;
+  static verify(root: BytesLike, leaf: BytesLike, proof: BytesLike[], hashPair: HashPairFn): boolean;
+  static verify(root: BytesLike, leaf: BytesLike, proof: BytesLike[], hashPair?: HashPairFn): boolean {
+    return toHex(root) === (hashPair ? processProof(leaf, proof, hashPair) : processProof(leaf, proof));
   }
 
-  static verifyMultiProof(root: BytesLike, multiproof: MultiProof<BytesLike, BytesLike>, hashPair ?: HashPairFn): boolean {
-    return toHex(root) === processMultiProof(
-      {
-        leaves: multiproof.leaves,
-        proof: multiproof.proof,
-        proofFlags: multiproof.proofFlags,
-      },
-      hashPair,
-    );
+  static verifyMultiProof(root: BytesLike, multiproof: MultiProof<BytesLike, BytesLike>): boolean;
+  static verifyMultiProof(root: BytesLike, multiproof: MultiProof<BytesLike, BytesLike>, hashPair: HashPairFn): boolean;
+  static verifyMultiProof(root: BytesLike, multiproof: MultiProof<BytesLike, BytesLike>, hashPair?: HashPairFn): boolean {
+    return toHex(root) === (hashPair ? processMultiProof(multiproof, hashPair) : processMultiProof(multiproof));
   }
 
   dump(): MerkleTreeData<BytesLike> {
@@ -130,8 +131,10 @@ export class SimpleMerkleTree {
     for (let i = 0; i < this.values.length; i++) {
       this.validateValue(i);
     }
-    if (!isValidMerkleTree(this.tree, this.hashPair)) {
-      throwError('Merkle tree is invalid');
+    if (this.hashPair) {
+      isValidMerkleTree(this.tree, this.hashPair) || throwError('Merkle tree is invalid');
+    } else {
+      isValidMerkleTree(this.tree) || throwError('Merkle tree is invalid');
     }
   }
 
@@ -184,7 +187,9 @@ export class SimpleMerkleTree {
   }
 
   private _verify(leafHash: BytesLike, proof: BytesLike[]): boolean {
-    return this.root === processProof(leafHash, proof, this.hashPair);
+    return this.hashPair
+      ? SimpleMerkleTree.verify(this.root, leafHash, proof, this.hashPair)
+      : SimpleMerkleTree.verify(this.root, leafHash, proof);
   }
 
   verifyMultiProof(multiproof: MultiProof<BytesLike, number | BytesLike>): boolean {
@@ -196,7 +201,9 @@ export class SimpleMerkleTree {
   }
 
   private _verifyMultiProof(multiproof: MultiProof<BytesLike, BytesLike>): boolean {
-    return this.root === processMultiProof(multiproof, this.hashPair);
+    return this.hashPair
+      ? SimpleMerkleTree.verifyMultiProof(this.root, multiproof, this.hashPair)
+      : SimpleMerkleTree.verifyMultiProof(this.root, multiproof);
   }
 
   private validateValue(valueIndex: number): HexString {
