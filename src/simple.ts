@@ -45,7 +45,7 @@ export class SimpleMerkleTree {
       ]));
   }
 
-  static of(values: BytesLike[], options: MerkleTreeOptions & { hashPair?: HashPairFn } = {}) {
+  static of(values: BytesLike[], options: MerkleTreeOptions & { hashPair?: HashPairFn } = {}): SimpleMerkleTree {
     const { sortLeaves, hashPair } = { ...defaultOptions, ...options };
 
     values.forEach((value, i) => {
