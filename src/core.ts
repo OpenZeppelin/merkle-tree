@@ -1,8 +1,6 @@
-import { keccak256 } from '@ethersproject/keccak256';
 import { BytesLike, HexString, toHex, toBytes, concat, compare } from './bytes';
+import { HashPairFn, keccak256SortedPair } from './hashes';
 import { throwError } from './utils/throw-error';
-
-const hashPair = (a: BytesLike, b: BytesLike): HexString => keccak256(concat([a, b].sort(compare)));
 
 const leftChildIndex  = (i: number) => 2 * i + 1;
 const rightChildIndex = (i: number) => 2 * i + 2;
@@ -19,7 +17,7 @@ const checkInternalNode    = (tree: unknown[], i: number) => void (isInternalNod
 const checkLeafNode        = (tree: unknown[], i: number) => void (isLeafNode(tree, i)     || throwError('Index is not a leaf'));
 const checkValidMerkleNode = (node: BytesLike)            => void (isValidMerkleNode(node) || throwError('Merkle tree nodes must be Uint8Array of length 32'));
 
-export function makeMerkleTree(leaves: BytesLike[]): HexString[] {
+export function makeMerkleTree(leaves: BytesLike[], hash?: HashPairFn): HexString[] {
   leaves.forEach(checkValidMerkleNode);
 
   if (leaves.length === 0) {
@@ -32,7 +30,7 @@ export function makeMerkleTree(leaves: BytesLike[]): HexString[] {
     tree[tree.length - 1 - i] = toHex(leaf);
   }
   for (let i = tree.length - 1 - leaves.length; i >= 0; i--) {
-    tree[i] = hashPair(
+    tree[i] = (hash ?? keccak256SortedPair)(
       tree[leftChildIndex(i)]!,
       tree[rightChildIndex(i)]!,
     );
@@ -52,11 +50,11 @@ export function getProof(tree: BytesLike[], index: number): HexString[] {
   return proof.map(node => toHex(node));
 }
 
-export function processProof(leaf: BytesLike, proof: BytesLike[]): HexString {
+export function processProof(leaf: BytesLike, proof: BytesLike[], hash?: HashPairFn): HexString {
   checkValidMerkleNode(leaf);
   proof.forEach(checkValidMerkleNode);
 
-  return toHex(proof.reduce(hashPair, leaf));
+  return toHex(proof.reduce(hash ?? keccak256SortedPair, leaf));
 }
 
 export interface MultiProof<T, L = T> {
@@ -103,7 +101,7 @@ export function getMultiProof(tree: BytesLike[], indices: number[]): MultiProof<
   };
 }
 
-export function processMultiProof(multiproof: MultiProof<BytesLike>): HexString {
+export function processMultiProof(multiproof: MultiProof<BytesLike>, hash?: HashPairFn): HexString {
   multiproof.leaves.forEach(checkValidMerkleNode);
   multiproof.proof.forEach(checkValidMerkleNode);
 
@@ -124,7 +122,7 @@ export function processMultiProof(multiproof: MultiProof<BytesLike>): HexString 
     if (a === undefined || b === undefined) {
       throw new Error('Broken invariant');
     }
-    stack.push(hashPair(a, b));
+    stack.push((hash ?? keccak256SortedPair)(a, b));
   }
 
   if (stack.length + proof.length !== 1) {
@@ -134,7 +132,7 @@ export function processMultiProof(multiproof: MultiProof<BytesLike>): HexString 
   return toHex(stack.pop() ?? proof.shift()!);
 }
 
-export function isValidMerkleTree(tree: BytesLike[]): boolean {
+export function isValidMerkleTree(tree: BytesLike[], hash?: HashPairFn): boolean {
   for (const [i, node] of tree.entries()) {
     if (!isValidMerkleNode(node)) {
       return false;
@@ -147,7 +145,7 @@ export function isValidMerkleTree(tree: BytesLike[]): boolean {
       if (l < tree.length) {
         return false;
       }
-    } else if (node !== hashPair(tree[l]!, tree[r]!)) {
+    } else if (node !== (hash ?? keccak256SortedPair)(tree[l]!, tree[r]!)) {
       return false;
     }
   }

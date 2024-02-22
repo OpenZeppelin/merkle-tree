@@ -8,6 +8,10 @@ import {
 } from './bytes';
 
 import {
+  HashPairFn,
+} from './hashes';
+
+import {
   MerkleTreeData,
 } from './format';
 
@@ -32,6 +36,7 @@ export class SimpleMerkleTree {
   private constructor(
     private readonly tree: HexString[],
     private readonly values: { value: HexString, treeIndex: number }[],
+    private readonly hashPair?: HashPairFn,
   ) {
     this.hashLookup =
       Object.fromEntries(values.map(({ value }, valueIndex) => [
@@ -40,8 +45,8 @@ export class SimpleMerkleTree {
       ]));
   }
 
-  static of(values: BytesLike[], options: MerkleTreeOptions = {}) {
-    const { sortLeaves } = { ...defaultOptions, ...options };
+  static of(values: BytesLike[], options: MerkleTreeOptions & { hashPair?: HashPairFn } = {}) {
+    const { sortLeaves, hashPair } = { ...defaultOptions, ...options };
 
     values.forEach((value, i) => {
       if (toBytes(value).length !== 32) {
@@ -55,43 +60,55 @@ export class SimpleMerkleTree {
       hashedValues.sort((a, b) => compare(a.hash, b.hash));
     }
 
-    const tree = makeMerkleTree(hashedValues.map(v => v.hash));
+    const tree = makeMerkleTree(hashedValues.map(v => v.hash), hashPair);
 
     const indexedValues = values.map(value => ({ value: toHex(value), treeIndex: 0 }));
     for (const [leafIndex, { valueIndex }] of hashedValues.entries()) {
       indexedValues[valueIndex]!.treeIndex = tree.length - leafIndex - 1;
     }
 
-    return new SimpleMerkleTree(tree, indexedValues);
+    return new SimpleMerkleTree(tree, indexedValues, hashPair);
   }
 
-  static load(data: MerkleTreeData<BytesLike>): SimpleMerkleTree {
-    if (data.format !== 'standard-v1') {
-      throwError(`Unknown format '${data.format}'`);
+  static load(data: MerkleTreeData<BytesLike>, hashPair ?: HashPairFn): SimpleMerkleTree {
+    switch (data.format) {
+      case 'standard-v1':
+        if (hashPair !== undefined) throwError(`Format '${data.format}' does not support custom hashing functions`);
+        break;
+      case 'custom-v1':
+        if (hashPair === undefined) throwError(`Format '${data.format}' requires a hashing function`);
+        // TODO: check that the hash matches the data.
+        break;
+      default:
+        throwError(`Unknown format '${data.format}'`);
     }
     return new SimpleMerkleTree(
       data.tree,
       data.values.map(({ value, treeIndex }) => ({ value: toHex(value), treeIndex })),
+      hashPair,
     );
   }
 
-  static verify(root: BytesLike, leaf: BytesLike, proof: BytesLike[]): boolean {
-    return toHex(root) === processProof(leaf, proof);
+  static verify(root: BytesLike, leaf: BytesLike, proof: BytesLike[], hashPair ?: HashPairFn): boolean {
+    return toHex(root) === processProof(leaf, proof, hashPair);
   }
 
-  static verifyMultiProof(root: BytesLike, multiproof: MultiProof<BytesLike, BytesLike>): boolean {
-    return toHex(root) === processMultiProof({
-      leaves: multiproof.leaves,
-      proof: multiproof.proof,
-      proofFlags: multiproof.proofFlags,
-    });
+  static verifyMultiProof(root: BytesLike, multiproof: MultiProof<BytesLike, BytesLike>, hashPair ?: HashPairFn): boolean {
+    return toHex(root) === processMultiProof(
+      {
+        leaves: multiproof.leaves,
+        proof: multiproof.proof,
+        proofFlags: multiproof.proofFlags,
+      },
+      hashPair,
+    );
   }
 
   dump(): MerkleTreeData<BytesLike> {
     return {
-      format:      'standard-v1',
-      tree:         this.tree,
-      values:       this.values,
+      format: this.hashPair === undefined ? 'standard-v1' : 'custom-v1',
+      tree:   this.tree,
+      values: this.values,
     };
   }
 
@@ -113,7 +130,7 @@ export class SimpleMerkleTree {
     for (let i = 0; i < this.values.length; i++) {
       this.validateValue(i);
     }
-    if (!isValidMerkleTree(this.tree)) {
+    if (!isValidMerkleTree(this.tree, this.hashPair)) {
       throwError('Merkle tree is invalid');
     }
   }
@@ -167,7 +184,7 @@ export class SimpleMerkleTree {
   }
 
   private _verify(leafHash: BytesLike, proof: BytesLike[]): boolean {
-    return this.root === processProof(leafHash, proof);
+    return this.root === processProof(leafHash, proof, this.hashPair);
   }
 
   verifyMultiProof(multiproof: MultiProof<BytesLike, number | BytesLike>): boolean {
@@ -179,7 +196,7 @@ export class SimpleMerkleTree {
   }
 
   private _verifyMultiProof(multiproof: MultiProof<BytesLike, BytesLike>): boolean {
-    return this.root === processMultiProof(multiproof);
+    return this.root === processMultiProof(multiproof, this.hashPair);
   }
 
   private validateValue(valueIndex: number): HexString {
