@@ -161,12 +161,16 @@ describe('simple merkle tree', () => {
         () => SimpleMerkleTree.load({ format: 'nonstandard' } as any),
         /^Error: Unknown format 'nonstandard'$/,
       );
+      assert.throws(
+        () => SimpleMerkleTree.load({ format: 'standard-v1'} as any, reverseHashPair),
+        /^Error: Unknown format 'standard-v1'$/,
+      );
     });
 
     it('reject standard tree dump with a custom hash', () => {
       assert.throws(
-        () => SimpleMerkleTree.load({ format: 'standard-v1'} as any, reverseHashPair),
-        /^Error: Format 'standard-v1' does not support custom hashing functions$/,
+        () => SimpleMerkleTree.load({ format: 'simple-v1'} as any, reverseHashPair),
+        /^Error: Format 'simple-v1' does not support custom hashing functions$/,
       );
     });
 
@@ -179,7 +183,7 @@ describe('simple merkle tree', () => {
 
     it('reject malformed tree dump', () => {
       const loadedTree1 = SimpleMerkleTree.load({
-        format: 'standard-v1',
+        format: 'simple-v1',
         tree: [zero],
         values: [{ value: '0x0000000000000000000000000000000000000000000000000000000000000001', treeIndex: 0 }],
       });
@@ -189,7 +193,7 @@ describe('simple merkle tree', () => {
       );
 
       const loadedTree2 = SimpleMerkleTree.load({
-        format: 'standard-v1',
+        format: 'simple-v1',
         tree: [zero, zero, zero],
         values: [{ value: zero, treeIndex: 2 }],
       });

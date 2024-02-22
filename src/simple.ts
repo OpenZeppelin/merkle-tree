@@ -72,7 +72,7 @@ export class SimpleMerkleTree {
 
   static load(data: MerkleTreeData<BytesLike>, hashPair ?: HashPairFn): SimpleMerkleTree {
     switch (data.format) {
-      case 'standard-v1':
+      case 'simple-v1':
         if (hashPair !== undefined) throwError(`Format '${data.format}' does not support custom hashing functions`);
         break;
       case 'custom-v1':
@@ -106,7 +106,7 @@ export class SimpleMerkleTree {
 
   dump(): MerkleTreeData<BytesLike> {
     return {
-      format: this.hashPair === undefined ? 'standard-v1' : 'custom-v1',
+      format: this.hashPair === undefined ? 'simple-v1' : 'custom-v1',
       tree:   this.tree,
       values: this.values,
     };

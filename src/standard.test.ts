@@ -114,6 +114,14 @@ describe('standard merkle tree', () => {
         () => StandardMerkleTree.load({ format: 'nonstandard' } as any),
         /^Error: Unknown format 'nonstandard'$/,
       );
+      assert.throws(
+        () => StandardMerkleTree.load({ format: 'simple-v1' } as any),
+        /^Error: Unknown format 'simple-v1'$/,
+      );
+      assert.throws(
+        () => StandardMerkleTree.load({ format: 'custom-v1' } as any),
+        /^Error: Unknown format 'custom-v1'$/,
+      );
     });
 
     it('reject malformed tree dump', () => {
