@@ -1,4 +1,4 @@
-import { BytesLike, HexString, toHex, toBytes, concat, compare } from './bytes';
+import { BytesLike, HexString, toHex, toBytes } from './bytes';
 import { HashPairFn, keccak256SortedPair } from './hashes';
 import { throwError } from './utils/throw-error';
 
