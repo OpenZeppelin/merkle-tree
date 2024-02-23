@@ -14,7 +14,7 @@ export class SimpleMerkleTree extends MerkleTreeImpl<BytesLike> {
     values: BytesLike[],
     options: MerkleTreeOptions = {},
   ): SimpleMerkleTree => {
-    const [ tree, indexedValues ] = SimpleMerkleTree.prepare(values, options, formatLeaf);
+    const [ tree, indexedValues ] = MerkleTreeImpl.prepare(values, options, formatLeaf);
     return new SimpleMerkleTree(tree, indexedValues, formatLeaf);
   }
 
@@ -24,7 +24,7 @@ export class SimpleMerkleTree extends MerkleTreeImpl<BytesLike> {
     if (data.format !== "simple-v1") {
       throwError(`Unknown format '${data.format}'`);
     }
-    return new this(data.tree, data.values, formatLeaf);
+    return new SimpleMerkleTree(data.tree, data.values, formatLeaf);
   }
 
   static verify(
