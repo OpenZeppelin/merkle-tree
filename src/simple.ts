@@ -1,5 +1,5 @@
 import { defaultAbiCoder } from "@ethersproject/abi";
-import { BytesLike, HexString, isBytesLike, toHex, compare } from "./bytes";
+import { BytesLike, HexString, toHex, compare } from "./bytes";
 
 import {
   MultiProof,
@@ -12,64 +12,39 @@ import {
   renderMerkleTree,
 } from "./core";
 
-import { SimpleMerkleTreeOptions, defaultOptions } from "./options";
+import { MerkleTree, MerkleTreeData } from "./interface";
+import { MerkleTreeOptions, defaultOptions } from "./options";
 import { checkBounds } from "./utils/check-bounds";
 import { throwError } from "./utils/throw-error";
 
-export type SimpleMerkleTreeValue = {
-  value: BytesLike[];
-  treeIndex: number;
-};
-
-export type SimpleMerkleTreeData = {
-  format: string;
-  tree: HexString[];
-  values: SimpleMerkleTreeValue[];
-};
-
-/// @notice Not an actual hash function, just a placeholder
-export function simpleLeafHash(value: BytesLike[]): HexString {
-  return defaultAbiCoder.encode(["bytes32"], value);
+export function formatLeaf(value: BytesLike): HexString {
+  return defaultAbiCoder.encode(["bytes32"], [ value ]);
 }
 
-export interface MerkleTree<T extends BytesLike[] = BytesLike[]> {
-  root: HexString;
-  dump(): SimpleMerkleTreeData;
-  render(): string;
-  entries(): Iterable<[number, T]>;
-  validate(): void;
-  leafLookup(leaf: T): number;
-  getProof(leaf: number | T): HexString[];
-  getMultiProof(leaves: (number | T)[]): MultiProof;
-  verify(leaf: number | T, proof: HexString[]): boolean;
-  verifyMultiProof(multiproof: MultiProof): boolean;
-}
-
-export class SimpleMerkleTree implements MerkleTree {
+export class SimpleMerkleTree<T extends BytesLike> implements MerkleTree<T> {
   private readonly hashLookup: { [hash: HexString]: number };
 
   protected constructor(
     protected readonly tree: HexString[],
-    protected readonly values: SimpleMerkleTreeValue[],
-    protected readonly options: SimpleMerkleTreeOptions = {}
+    protected readonly values: MerkleTreeData<T>['values'],
+    protected readonly leafHasher: (leaf: T) => HexString,
   ) {
-    this.options = Object.assign(options, defaultOptions);
     this.hashLookup = Object.fromEntries(
-      values.map(({ value }, valueIndex) => [this.leafHash(value), valueIndex])
+      values.map(({ treeIndex }, valueIndex) => [tree.at(treeIndex), valueIndex])
     );
   }
 
-  protected static parameters(
-    values: BytesLike[][],
-    options: SimpleMerkleTreeOptions = {},
-    leafHash: (value: BytesLike[]) => HexString = simpleLeafHash
-  ): [HexString[], indexedValues: SimpleMerkleTreeValue[]] {
+  protected static prepare<T extends BytesLike>(
+    values: T[],
+    options: MerkleTreeOptions = {},
+    leafHasher: (value: T) => HexString,
+  ): [tree: HexString[], indexedValues: MerkleTreeData<T>['values']] {
     const { sortLeaves } = { ...defaultOptions, ...options };
 
     const hashedValues = values.map((value, valueIndex) => ({
       value,
       valueIndex,
-      hash: leafHash(value),
+      hash: leafHasher(value),
     }));
 
     if (sortLeaves) {
@@ -89,56 +64,41 @@ export class SimpleMerkleTree implements MerkleTree {
     return [tree, indexedValues];
   }
 
-  static of<O extends SimpleMerkleTreeOptions>(
-    values: BytesLike[][],
-    options: O
-  ): SimpleMerkleTree {
-    return new this(...this.parameters(values, options));
+  static of<T extends BytesLike>(
+    values: T[],
+    options: MerkleTreeOptions = {}
+  ): SimpleMerkleTree<T> {
+    const [ tree, indexedValues ] = SimpleMerkleTree.prepare(values, options, formatLeaf);
+    return new SimpleMerkleTree(tree, indexedValues, formatLeaf);
   }
 
-  static load<D extends SimpleMerkleTreeData>(data: D): SimpleMerkleTree {
+  static load<T extends BytesLike>(data: MerkleTreeData<T>): SimpleMerkleTree<T> {
     if (data.format !== "simple-v1") {
       throwError(`Unknown format '${data.format}'`);
     }
-
-    return new this(
-      data.tree,
-      data.values.map(({ value, treeIndex }) => ({
-        value: value.map((v) => toHex(v)),
-        treeIndex,
-      }))
-    );
+    return new this(data.tree, data.values, formatLeaf);
   }
 
-  static verify<T extends BytesLike[]>(
+  static verify<T extends BytesLike>(
     root: BytesLike,
     leaf: T,
     proof: BytesLike[],
-    _?: SimpleMerkleTreeOptions
   ): boolean {
-    return toHex(root) === processProof(simpleLeafHash(leaf), proof);
+    return toHex(root) === processProof(formatLeaf(leaf), proof);
   }
 
-  static verifyMultiProof(
+  static verifyMultiProof<T extends BytesLike>(
     root: BytesLike,
-    multiproof: MultiProof,
-    _?: SimpleMerkleTreeOptions
+    multiproof: MultiProof<T>,
   ): boolean {
-    return (
-      toHex(root) ===
-      processMultiProof({
-        leaves: multiproof.leaves,
-        proof: multiproof.proof,
-        proofFlags: multiproof.proofFlags,
-      })
-    );
+    return toHex(root) === processMultiProof(multiproof);
   }
 
   get root(): HexString {
     return this.tree[0]!;
   }
 
-  dump(): SimpleMerkleTreeData {
+  dump(): MerkleTreeData<T> {
     return {
       format: "simple-v1",
       tree: this.tree,
@@ -150,7 +110,7 @@ export class SimpleMerkleTree implements MerkleTree {
     return renderMerkleTree(this.tree);
   }
 
-  *entries(): Iterable<[number, BytesLike[]]> {
+  *entries(): Iterable<[number, T]> {
     for (const [i, { value }] of this.values.entries()) {
       yield [i, value];
     }
@@ -165,14 +125,14 @@ export class SimpleMerkleTree implements MerkleTree {
     }
   }
 
-  leafLookup(leaf: BytesLike[]): number {
+  leafLookup(leaf: T): number {
     return (
       this.hashLookup[toHex(this.leafHash(leaf))] ??
       throwError("Leaf is not in tree")
     );
   }
 
-  getProof(leaf: number | BytesLike[]): HexString[] {
+  getProof(leaf: number | T): HexString[] {
     // input validity
     const valueIndex = typeof leaf === "number" ? leaf : this.leafLookup(leaf);
     this.validateValue(valueIndex);
@@ -190,7 +150,7 @@ export class SimpleMerkleTree implements MerkleTree {
     return proof;
   }
 
-  getMultiProof(leaves: (number | BytesLike[])[]): MultiProof {
+  getMultiProof(leaves: (number | T)[]): MultiProof<T> {
     // input validity
     const valueIndices = leaves.map((leaf) =>
       typeof leaf === "number" ? leaf : this.leafLookup(leaf)
@@ -208,19 +168,19 @@ export class SimpleMerkleTree implements MerkleTree {
 
     // return multiproof in hex format
     return {
-      leaves: proof.leaves,
+      leaves: proof.leaves.map(hash => this.values[this.hashLookup[hash]!]!.value),
       proof: proof.proof,
       proofFlags: proof.proofFlags,
     };
   }
 
-  verify(leaf: number | BytesLike[], proof: HexString[]): boolean {
+  verify(leaf: number | T, proof: HexString[]): boolean {
     return this._verify(this.leafHash(leaf), proof);
   }
 
-  verifyMultiProof(multiproof: MultiProof): boolean {
+  verifyMultiProof(multiproof: MultiProof<number | T>): boolean {
     return this._verifyMultiProof({
-      leaves: multiproof.leaves,
+      leaves: multiproof.leaves.map(l => this.leafHash(l)),
       proof: multiproof.proof,
       proofFlags: multiproof.proofFlags,
     });
@@ -237,19 +197,19 @@ export class SimpleMerkleTree implements MerkleTree {
     return hashedLeaf;
   }
 
-  protected leafHash(leaf: number | BytesLike[]): HexString {
-    if (Array.isArray(leaf)) {
-      return simpleLeafHash(leaf);
-    } else {
+  protected leafHash(leaf: number | T): HexString {
+    if (typeof leaf === 'number') {
       return this.validateValue(leaf);
+    } else {
+      return this.leafHasher(leaf);
     }
   }
 
-  private _verify(leafHash: HexString, proof: HexString[]): boolean {
+  private _verify(leafHash: BytesLike, proof: BytesLike[]): boolean {
     return this.root === processProof(leafHash, proof);
   }
 
-  private _verifyMultiProof(multiproof: MultiProof): boolean {
+  private _verifyMultiProof(multiproof: MultiProof<BytesLike>): boolean {
     return this.root === processMultiProof(multiproof);
   }
 }

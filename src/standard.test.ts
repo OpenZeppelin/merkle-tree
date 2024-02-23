@@ -1,21 +1,27 @@
 import assert from "assert/strict";
 import { HashZero as zero } from "@ethersproject/constants";
 import { keccak256 } from "@ethersproject/keccak256";
-import { StandardMerkleTree } from "./standard";
-import { StandardMerkleTreeOptions } from "./options";
+import { StandardMerkleTree, StandardMerkleTreeData } from "./standard";
 
 describe("standard merkle tree", () => {
+  it('Supports complex leaf types', () => {
+    const leaves = [
+      [0, []],
+      [1, ['openzeppelin']],
+      [2, ['hello', 'world']],
+      [3, ['merkle', 'tree']],
+    ];
+    const types = [ 'uint256', 'string[]' ];
+    StandardMerkleTree.of(leaves, types);
+  });
+
   for (const opts of [{}, { sortLeaves: true }, { sortLeaves: false }]) {
     describe(`with options '${JSON.stringify(opts)}'`, () => {
       const leaves = "abcdef".split("").map((c) => [c]);
       const otherLeaves = "abc".split("").map((c) => [c]);
 
-      const tree = StandardMerkleTree.of(
-        leaves,
-        Object.assign(opts, { leafEncoding: ["string"] })
-      );
-
-      const otherTree = StandardMerkleTree.of(otherLeaves, ["string"]);
+      const tree      = StandardMerkleTree.of(leaves,      ["string"], opts);
+      const otherTree = StandardMerkleTree.of(otherLeaves, ["string"], opts);
 
       it("rejects loading a tree without leaf encoding", () => {
         assert.throws(
@@ -24,7 +30,7 @@ describe("standard merkle tree", () => {
               format: "standard-v1",
               tree: [zero],
               values: [{ value: ["0"], treeIndex: 0 }],
-            }),
+            } as StandardMerkleTreeData<[string]>),
           /^Error: Expected leaf encoding$/
         );
       });
@@ -42,14 +48,7 @@ describe("standard merkle tree", () => {
 
           assert(tree.verify(id, proof1));
           assert(tree.verify(leaf, proof1));
-          assert(
-            StandardMerkleTree.verify(tree.root, ["string"], leaf, proof1)
-          );
-          assert(
-            StandardMerkleTree.verify(tree.root, leaf, proof1, {
-              leafEncoding: ["string"],
-            })
-          );
+          assert(StandardMerkleTree.verify(tree.root, ["string"], leaf, proof1));
         }
       });
 
@@ -58,14 +57,7 @@ describe("standard merkle tree", () => {
         const invalidProof = otherTree.getProof(leaf);
 
         assert(!tree.verify(leaf, invalidProof));
-        assert(
-          !StandardMerkleTree.verify(tree.root, ["string"], leaf, invalidProof)
-        );
-        assert(
-          !StandardMerkleTree.verify(tree.root, leaf, invalidProof, {
-            leafEncoding: ["string"],
-          })
-        );
+        assert(!StandardMerkleTree.verify(tree.root, ["string"], leaf, invalidProof));
       });
 
       it("generates valid multiproofs", () => {
@@ -150,7 +142,12 @@ describe("standard merkle tree", () => {
         const recoveredTree = StandardMerkleTree.load(tree.dump());
 
         recoveredTree.validate();
-        assert.deepEqual(tree, recoveredTree);
+
+        // assert.deepEqual(tree, recoveredTree);
+        for (const key of Object.keys(tree)) {
+          if (key === 'leafHasher') continue; // This is a function tat is not reference-equal
+          assert.deepEqual((tree as any)[key], (recoveredTree as any)[key]);
+        }
       });
 
       it("reject out of bounds value index", () => {

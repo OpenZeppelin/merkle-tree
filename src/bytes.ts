@@ -1,6 +1,4 @@
-import type { BytesLike, Hexable } from "@ethersproject/bytes";
-
-type Hex = BytesLike | Hexable | number | bigint;
+import type { BytesLike } from "@ethersproject/bytes";
 type HexString = string;
 
 import {
@@ -11,10 +9,10 @@ import {
   isBytes,
 } from "@ethersproject/bytes";
 
-function compare(a: Hex, b: Hex): number {
+function compare(a: BytesLike, b: BytesLike): number {
   const diff = BigInt(toHex(a)) - BigInt(toHex(b));
   return diff > 0 ? 1 : diff < 0 ? -1 : 0;
 }
 
-export type { Hex, HexString, BytesLike };
+export type { HexString, BytesLike };
 export { isBytesLike, toBytes, toHex, concat, compare, isBytes };

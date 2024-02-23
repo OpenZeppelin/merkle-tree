@@ -57,13 +57,13 @@ export function processProof(leaf: BytesLike, proof: BytesLike[]): HexString {
   return toHex(proof.reduce(hashPair, leaf));
 }
 
-export interface MultiProof {
-  leaves: BytesLike[];
+export interface MultiProof<T> {
+  leaves: T[];
   proof: HexString[];
   proofFlags: boolean[];
 }
 
-export function getMultiProof(tree: BytesLike[], indices: number[]): MultiProof {
+export function getMultiProof(tree: BytesLike[], indices: number[]): MultiProof<HexString> {
   indices.forEach(i => checkLeafNode(tree, i));
   indices.sort((a, b) => b - a);
 
@@ -101,7 +101,7 @@ export function getMultiProof(tree: BytesLike[], indices: number[]): MultiProof 
   };
 }
 
-export function processMultiProof(multiproof: MultiProof): HexString {
+export function processMultiProof(multiproof: MultiProof<BytesLike>): HexString {
   multiproof.leaves.forEach(checkValidMerkleNode);
   multiproof.proof.forEach(checkValidMerkleNode);
 

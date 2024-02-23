@@ -6,10 +6,8 @@ import { SimpleMerkleTree } from "./simple";
 describe("simple merkle tree", () => {
   for (const opts of [{}, { sortLeaves: true }, { sortLeaves: false }]) {
     describe(`with options '${JSON.stringify(opts)}'`, () => {
-      const leaves = "abcdef".split("").map((c) => [keccak256(Buffer.from(c))]);
-      const otherLeaves = "abc"
-        .split("")
-        .map((c) => [keccak256(Buffer.from(c))]);
+      const leaves = "abcdef".split("").map((c) => keccak256(Buffer.from(c)));
+      const otherLeaves = "abc".split("").map((c) => keccak256(Buffer.from(c)));
       const tree = SimpleMerkleTree.of(leaves, opts);
       const otherTree = SimpleMerkleTree.of(otherLeaves, opts);
 
@@ -115,7 +113,7 @@ describe("simple merkle tree", () => {
       it("reject invalid leaf size", () => {
         const invalidLeaf = [zero + "00"]; // 33 bytes (all zero)
         assert.throws(
-          () => SimpleMerkleTree.of([invalidLeaf], opts),
+          () => SimpleMerkleTree.of(invalidLeaf, opts),
           `Error: ${invalidLeaf} is not a valid 32 bytes object (pos: 0)`
         );
       });
@@ -141,9 +139,7 @@ describe("simple merkle tree", () => {
         tree: [zero],
         values: [
           {
-            value: [
-              "0x0000000000000000000000000000000000000000000000000000000000000001",
-            ],
+            value: "0x0000000000000000000000000000000000000000000000000000000000000001",
             treeIndex: 0,
           },
         ],
@@ -156,7 +152,7 @@ describe("simple merkle tree", () => {
       const loadedTree2 = SimpleMerkleTree.load({
         format: "simple-v1",
         tree: [zero, zero, zero],
-        values: [{ value: [zero], treeIndex: 2 }],
+        values: [{ value: zero, treeIndex: 2 }],
       });
       assert.throws(
         () => loadedTree2.getProof(0),

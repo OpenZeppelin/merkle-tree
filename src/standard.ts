@@ -1,196 +1,78 @@
-import { BytesLike, HexString, toHex, isBytes, isBytesLike } from "./bytes";
-
+import { keccak256 } from "@ethersproject/keccak256";
+import { defaultAbiCoder } from "@ethersproject/abi";
+import { BytesLike, HexString, toHex, isBytesLike } from "./bytes";
 import { MultiProof, processProof, processMultiProof } from "./core";
 
-import {
-  SimpleMerkleTree,
-  SimpleMerkleTreeData,
-  SimpleMerkleTreeValue,
-} from "./simple";
-
-import { defaultAbiCoder } from "@ethersproject/abi";
-import { keccak256 } from "@ethersproject/keccak256";
-
-import { StandardMerkleTreeOptions } from "./options";
+import { SimpleMerkleTree } from "./simple";
+import { MerkleTreeData } from "./interface";
+import { MerkleTreeOptions } from "./options";
 import { throwError } from "./utils/throw-error";
 
-export type StandardMerkleTreeValue = SimpleMerkleTreeValue;
+export type StandardMerkleTreeData<T extends any[]> = MerkleTreeData<T> & { leafEncoding: string[]; };
 
-export type StandardMerkleTreeData = SimpleMerkleTreeData & {
-  leafEncoding?: string[];
-};
-
-export function standardLeafHash<T extends BytesLike[] = BytesLike[]>(
-  value: T,
-  types: string[]
-): HexString {
-  return keccak256(keccak256(defaultAbiCoder.encode(types, value)));
+export function standardLeafHasher<T extends BytesLike[] = BytesLike[]>(types: string[]) {
+  return (value: T) => keccak256(keccak256(defaultAbiCoder.encode(types, value)));
 }
 
-export class StandardMerkleTree extends SimpleMerkleTree {
+export class StandardMerkleTree<T extends any[]> extends SimpleMerkleTree<T> {
   protected constructor(
     protected readonly tree: HexString[],
-    protected readonly values: SimpleMerkleTreeValue[],
-    protected readonly options: StandardMerkleTreeOptions
+    protected readonly values: StandardMerkleTreeData<T>['values'],
+    protected readonly leafEncoding: string[],
   ) {
-    super(tree, values, options);
+    super(tree, values, standardLeafHasher(leafEncoding));
   }
 
-  protected static parameters(
-    values: BytesLike[][],
-    options: StandardMerkleTreeOptions
-  ): [HexString[], indexedValues: SimpleMerkleTreeValue[]] {
-    return super.parameters(values, options, (value) =>
-      standardLeafHash(value, options.leafEncoding)
+  static of<T extends any[]>(
+    values: T[],
+    leafEncoding: string[],
+    options: MerkleTreeOptions = {}
+  ): StandardMerkleTree<T> {
+    const [ tree, indexedValues ] = SimpleMerkleTree.prepare(
+      values,
+      options,
+      standardLeafHasher(leafEncoding),
     );
+    return new StandardMerkleTree(tree, indexedValues, leafEncoding);
   }
 
-  static of(
-    values: BytesLike[][],
-    options: StandardMerkleTreeOptions
-  ): StandardMerkleTree;
-  static of(
-    values: BytesLike[][],
-    leafEncoding: StandardMerkleTreeOptions["leafEncoding"]
-  ): StandardMerkleTree;
-  static of(
-    values: BytesLike[][],
-    optionsOrLeafEncoding:
-      | StandardMerkleTreeOptions
-      | StandardMerkleTreeOptions["leafEncoding"]
-  ): StandardMerkleTree {
-    if (Array.isArray(optionsOrLeafEncoding)) {
-      optionsOrLeafEncoding = { leafEncoding: optionsOrLeafEncoding };
-    }
-
-    const options = Object.assign({}, optionsOrLeafEncoding);
-
-    return new StandardMerkleTree(...this.parameters(values, options), options);
-  }
-
-  static load<D extends StandardMerkleTreeData>(data: D): StandardMerkleTree {
-    if (data.leafEncoding === undefined) {
-      throwError("Expected leaf encoding");
-    }
-
+  static load<T extends any[]>(data: StandardMerkleTreeData<T>): StandardMerkleTree<T> {
     if (data.format !== "standard-v1") {
       throw new Error(`Unknown format '${data.format}'`);
     }
-
-    const leafEncoding = data.leafEncoding;
-
-    return new StandardMerkleTree(data.tree, data.values, { leafEncoding });
-  }
-
-  static verify(
-    root: BytesLike,
-    leaf: BytesLike[],
-    proof: BytesLike[],
-    options: StandardMerkleTreeOptions
-  ): boolean;
-  static verify(
-    root: BytesLike,
-    leafEncoding: StandardMerkleTreeOptions["leafEncoding"],
-    leaf: BytesLike[],
-    proof: BytesLike[]
-  ): boolean;
-  static verify(
-    root: BytesLike,
-    leafOrLeafEncoding: BytesLike[] | StandardMerkleTreeOptions["leafEncoding"],
-    proofOrLeaf: BytesLike[] | BytesLike[],
-    optionsOrProof: StandardMerkleTreeOptions | BytesLike[]
-  ): boolean {
-    let leaf: BytesLike[];
-    let proof: BytesLike[];
-    let options: StandardMerkleTreeOptions;
-
-    if ("leafEncoding" in optionsOrProof) {
-      leaf = leafOrLeafEncoding;
-      proof = proofOrLeaf;
-      options = optionsOrProof;
-    } else if (leafOrLeafEncoding.some((v) => !isBytesLike(v))) {
-      leaf = proofOrLeaf;
-      proof = optionsOrProof;
-
-      options = {
-        leafEncoding:
-          leafOrLeafEncoding as StandardMerkleTreeOptions["leafEncoding"],
-      };
-    } else {
-      throwError("Invalid arguments");
+    if (data.leafEncoding === undefined) {
+      throwError("Expected leaf encoding");
     }
-
-    return (
-      toHex(root) ===
-      processProof(standardLeafHash(leaf, options.leafEncoding), proof)
-    );
+    return new StandardMerkleTree(data.tree, data.values, data.leafEncoding);
   }
 
-  static verifyMultiProof(
+  static verify<T extends any[]>(
     root: BytesLike,
     leafEncoding: string[],
-    multiproof: MultiProof
-  ): boolean;
-  static verifyMultiProof(
-    root: BytesLike,
-    multiproof: MultiProof,
-    options?: StandardMerkleTreeOptions
-  ): boolean;
-  static verifyMultiProof(
-    root: BytesLike,
-    leafEncodingOrMultiproof: string[] | MultiProof,
-    multiProofOrOptions?: MultiProof | StandardMerkleTreeOptions
+    leaf: T,
+    proof: BytesLike[],
   ): boolean {
-    let leafEncoding: string[];
-    let multiproof: MultiProof;
-    let options: StandardMerkleTreeOptions;
-
-    if (
-      "proof" in leafEncodingOrMultiproof &&
-      Array.isArray(multiProofOrOptions)
-    ) {
-      leafEncoding = multiProofOrOptions;
-      multiproof = leafEncodingOrMultiproof;
-      options = { leafEncoding };
-    } else if (Array.isArray(leafEncodingOrMultiproof)) {
-      if (
-        multiProofOrOptions === undefined ||
-        "leafEncoding" in multiProofOrOptions
-      ) {
-        throwError("Invalid arguments");
-      }
-
-      leafEncoding = leafEncodingOrMultiproof;
-      multiproof = multiProofOrOptions;
-      options = { leafEncoding };
-    } else {
-      throwError("Invalid arguments");
-    }
-
-    return (
-      toHex(root) ===
-      processMultiProof({
-        leaves: multiproof.leaves,
-        proof: multiproof.proof,
-        proofFlags: multiproof.proofFlags,
-      })
-    );
+    return toHex(root) === processProof(standardLeafHasher(leafEncoding)(leaf), proof);
   }
 
-  dump(): StandardMerkleTreeData {
+  static verifyMultiProof<T extends any[]>(
+    root: BytesLike,
+    leafEncoding: string[],
+    multiproof: MultiProof<T>
+  ): boolean {
+    return toHex(root) === processMultiProof({
+      leaves: multiproof.leaves.map(leaf => standardLeafHasher(leafEncoding)(leaf)),
+      proof: multiproof.proof,
+      proofFlags: multiproof.proofFlags,
+    });
+  }
+
+  dump(): StandardMerkleTreeData<T> {
     return {
       format: "standard-v1",
       tree: this.tree,
       values: this.values,
-      leafEncoding: this.options.leafEncoding,
+      leafEncoding: this.leafEncoding,
     };
-  }
-
-  protected leafHash(leaf: number | BytesLike[]): HexString {
-    if (Array.isArray(leaf)) {
-      return standardLeafHash(leaf, this.options.leafEncoding);
-    } else {
-      return this.validateValue(leaf);
-    }
   }
 }
