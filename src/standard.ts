@@ -8,8 +8,8 @@ import { throwError } from "./utils/throw-error";
 
 export type StandardMerkleTreeData<T extends any[]> = MerkleTreeData<T> & { leafEncoding: string[]; };
 
-export function standardLeafHasher<T extends BytesLike[] = BytesLike[]>(types: string[]) {
-  return (value: T) => keccak256(keccak256(defaultAbiCoder.encode(types, value)));
+export function standardLeafHasher<T extends any[]>(types: string[], value: T): HexString {
+  return keccak256(keccak256(defaultAbiCoder.encode(types, value)));
 }
 
 export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
@@ -18,7 +18,7 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
     protected readonly values: StandardMerkleTreeData<T>['values'],
     protected readonly leafEncoding: string[],
   ) {
-    super(tree, values, standardLeafHasher(leafEncoding));
+    super(tree, values, standardLeafHasher.bind(null, leafEncoding));
   }
 
   static of<T extends any[]>(
@@ -29,7 +29,7 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
     const [ tree, indexedValues ] = MerkleTreeImpl.prepare(
       values,
       options,
-      standardLeafHasher(leafEncoding),
+      standardLeafHasher.bind(null, leafEncoding),
     );
     return new StandardMerkleTree(tree, indexedValues, leafEncoding);
   }
@@ -50,7 +50,7 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
     leaf: T,
     proof: BytesLike[],
   ): boolean {
-    return toHex(root) === processProof(standardLeafHasher(leafEncoding)(leaf), proof);
+    return toHex(root) === processProof(standardLeafHasher(leafEncoding, leaf), proof);
   }
 
   static verifyMultiProof<T extends any[]>(
@@ -59,7 +59,7 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
     multiproof: MultiProof<T>
   ): boolean {
     return toHex(root) === processMultiProof({
-      leaves: multiproof.leaves.map(leaf => standardLeafHasher(leafEncoding)(leaf)),
+      leaves: multiproof.leaves.map(leaf => standardLeafHasher(leafEncoding, leaf)),
       proof: multiproof.proof,
       proofFlags: multiproof.proofFlags,
     });

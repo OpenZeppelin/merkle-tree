@@ -144,9 +144,9 @@ describe("standard merkle tree", () => {
         recoveredTree.validate();
 
         // assert.deepEqual(tree, recoveredTree);
-        for (const key of Object.keys(tree)) {
-          if (key === 'leafHasher') continue; // This is a function tat is not reference-equal
-          assert.deepEqual((tree as any)[key], (recoveredTree as any)[key]);
+        for (const [key, value] of Object.entries(tree)) {
+          if (typeof value === 'function') continue; // LeafHasher is a function that is not reference-equal
+          assert.deepEqual(value, (recoveredTree as any)[key]);
         }
       });
 
