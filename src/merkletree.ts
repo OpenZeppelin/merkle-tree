@@ -31,7 +31,7 @@ export interface MerkleTree<T extends any> {
   getProof(leaf: number | T): HexString[];
   getMultiProof(leaves: (number | T)[]): MultiProof<T>;
   verify(leaf: number | T, proof: HexString[]): boolean;
-  verifyMultiProof(multiproof: MultiProof<T>): boolean;
+  verifyMultiProof(multiproof: MultiProof<number | T>): boolean;
 }
 
 export class MerkleTreeImpl<T> implements MerkleTree<T> {
