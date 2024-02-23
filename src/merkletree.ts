@@ -1,4 +1,4 @@
-import { BytesLike, HexString, toHex, compare } from "./bytes";
+import { BytesLike, HexString, toHex, compare } from './bytes';
 
 import {
   MultiProof,
@@ -9,16 +9,16 @@ import {
   processProof,
   processMultiProof,
   renderMerkleTree,
-} from "./core";
+} from './core';
 
-import { MerkleTreeOptions, defaultOptions } from "./options";
-import { checkBounds } from "./utils/check-bounds";
-import { throwError } from "./utils/throw-error";
+import { MerkleTreeOptions, defaultOptions } from './options';
+import { checkBounds } from './utils/check-bounds';
+import { throwError } from './utils/throw-error';
 
 export type MerkleTreeData<T> = {
   format: string;
   tree: HexString[];
-  values: { value: T; treeIndex: number; }[];
+  values: { value: T; treeIndex: number }[];
 };
 
 export interface MerkleTree<T extends any> {
@@ -42,9 +42,7 @@ export class MerkleTreeImpl<T> implements MerkleTree<T> {
     protected readonly values: MerkleTreeData<T>['values'],
     protected readonly leafHasher: (leaf: T) => HexString,
   ) {
-    this.hashLookup = Object.fromEntries(
-      values.map(({ treeIndex }, valueIndex) => [tree.at(treeIndex), valueIndex])
-    );
+    this.hashLookup = Object.fromEntries(values.map(({ treeIndex }, valueIndex) => [tree.at(treeIndex), valueIndex]));
   }
 
   protected static prepare<T>(
@@ -64,9 +62,9 @@ export class MerkleTreeImpl<T> implements MerkleTree<T> {
       hashedValues.sort((a, b) => compare(a.hash, b.hash));
     }
 
-    const tree = makeMerkleTree(hashedValues.map((v) => v.hash));
+    const tree = makeMerkleTree(hashedValues.map(v => v.hash));
 
-    const indexedValues = values.map((value) => ({
+    const indexedValues = values.map(value => ({
       value,
       treeIndex: 0,
     }));
@@ -83,7 +81,7 @@ export class MerkleTreeImpl<T> implements MerkleTree<T> {
 
   dump(): MerkleTreeData<T> {
     return {
-      format: "simple-v1",
+      format: 'simple-v1',
       tree: this.tree,
       values: this.values,
     };
@@ -104,20 +102,17 @@ export class MerkleTreeImpl<T> implements MerkleTree<T> {
       this.validateValue(i);
     }
     if (!isValidMerkleTree(this.tree)) {
-      throwError("Merkle tree is invalid");
+      throwError('Merkle tree is invalid');
     }
   }
 
   leafLookup(leaf: T): number {
-    return (
-      this.hashLookup[toHex(this.leafHash(leaf))] ??
-      throwError("Leaf is not in tree")
-    );
+    return this.hashLookup[toHex(this.leafHash(leaf))] ?? throwError('Leaf is not in tree');
   }
 
   getProof(leaf: number | T): HexString[] {
     // input validity
-    const valueIndex = typeof leaf === "number" ? leaf : this.leafLookup(leaf);
+    const valueIndex = typeof leaf === 'number' ? leaf : this.leafLookup(leaf);
     this.validateValue(valueIndex);
 
     // rebuild tree index and generate proof
@@ -126,7 +121,7 @@ export class MerkleTreeImpl<T> implements MerkleTree<T> {
 
     // sanity check proof
     if (!this._verify(this.tree[treeIndex]!, proof)) {
-      throwError("Unable to prove value");
+      throwError('Unable to prove value');
     }
 
     // return proof in hex format
@@ -135,18 +130,16 @@ export class MerkleTreeImpl<T> implements MerkleTree<T> {
 
   getMultiProof(leaves: (number | T)[]): MultiProof<T> {
     // input validity
-    const valueIndices = leaves.map((leaf) =>
-      typeof leaf === "number" ? leaf : this.leafLookup(leaf)
-    );
+    const valueIndices = leaves.map(leaf => (typeof leaf === 'number' ? leaf : this.leafLookup(leaf)));
     for (const valueIndex of valueIndices) this.validateValue(valueIndex);
 
     // rebuild tree indices and generate proof
-    const indices = valueIndices.map((i) => this.values[i]!.treeIndex);
+    const indices = valueIndices.map(i => this.values[i]!.treeIndex);
     const proof = getMultiProof(this.tree, indices);
 
     // sanity check proof
     if (!this._verifyMultiProof(proof)) {
-      throwError("Unable to prove values");
+      throwError('Unable to prove values');
     }
 
     // return multiproof in hex format
@@ -175,7 +168,7 @@ export class MerkleTreeImpl<T> implements MerkleTree<T> {
     checkBounds(this.tree, treeIndex);
     const hashedLeaf = this.leafHash(leaf);
     if (hashedLeaf !== this.tree[treeIndex]!) {
-      throwError("Merkle tree does not contain the expected value");
+      throwError('Merkle tree does not contain the expected value');
     }
     return hashedLeaf;
   }

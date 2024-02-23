@@ -8,6 +8,8 @@
     "prepublishOnly": "npm run clean",
     "prepare": "tsc",
     "clean": "rm -rf dist",
+    "lint": "prettier --log-level warn --ignore-path .gitignore '**/*.{js,ts}' --check",
+    "lint:fix": "prettier --log-level warn --ignore-path .gitignore '**/*.{js,ts}' --write",
     "test": "mocha",
     "coverage": "c8 npm run test --"
   },
@@ -31,6 +33,7 @@
     "c8": "^7.12.0",
     "fast-check": "^3.3.0",
     "mocha": "^10.1.0",
+    "prettier": "^3.2.5",
     "ts-node": "^10.9.1",
     "typescript": "^4.8.4"
   }
