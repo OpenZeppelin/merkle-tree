@@ -52,7 +52,7 @@ export class MerkleTreeImpl<T> implements MerkleTree<T> {
     options: MerkleTreeOptions = {},
     leafHasher: (value: T) => HexString,
   ): [tree: HexString[], indexedValues: MerkleTreeData<T>['values']] {
-    const { sortLeaves } = { ...defaultOptions, ...options };
+    const sortLeaves = options.sortLeaves ?? defaultOptions.sortLeaves;
 
     const hashedValues = values.map((value, valueIndex) => ({
       value,
