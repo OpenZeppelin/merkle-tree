@@ -1,7 +1,15 @@
 import fc from 'fast-check';
 import assert from 'assert/strict';
 import { equalsBytes } from 'ethereum-cryptography/utils';
-import { makeMerkleTree, getProof, processProof, getMultiProof, processMultiProof, isValidMerkleTree, renderMerkleTree } from './core';
+import {
+  makeMerkleTree,
+  getProof,
+  processProof,
+  getMultiProof,
+  processMultiProof,
+  isValidMerkleTree,
+  renderMerkleTree,
+} from './core';
 import { compareBytes, hex } from './bytes';
 import { keccak256 } from 'ethereum-cryptography/keccak';
 
@@ -49,18 +57,12 @@ describe('core properties', () => {
 
 describe('core error conditions', () => {
   it('zero leaves', () => {
-    assert.throws(
-      () => makeMerkleTree([]),
-      /^Error: Expected non-zero number of leaves$/,
-    );
+    assert.throws(() => makeMerkleTree([]), /^Error: Expected non-zero number of leaves$/);
   });
 
   it('multiproof duplicate index', () => {
     const tree = makeMerkleTree(new Array(2).fill(zero));
-    assert.throws(
-      () => getMultiProof(tree, [1, 1]),
-      /^Error: Cannot prove duplicated index$/,
-    );
+    assert.throws(() => getMultiProof(tree, [1, 1]), /^Error: Cannot prove duplicated index$/);
   });
 
   it('tree validity', () => {
@@ -68,10 +70,7 @@ describe('core error conditions', () => {
     assert(!isValidMerkleTree([zero, zero]), 'even number of nodes');
     assert(!isValidMerkleTree([zero, zero, zero]), 'inner node not hash of children');
 
-    assert.throws(
-      () => renderMerkleTree([]),
-      /^Error: Expected non-zero number of nodes$/,
-    );
+    assert.throws(() => renderMerkleTree([]), /^Error: Expected non-zero number of nodes$/);
   });
 
   it('multiproof invariants', () => {
@@ -84,12 +83,8 @@ describe('core error conditions', () => {
       proofFlags: [true, true, false],
     };
 
-    assert.throws(
-      () => processMultiProof(badMultiProof),
-      /^Error: Broken invariant$/,
-    );
+    assert.throws(() => processMultiProof(badMultiProof), /^Error: Broken invariant$/);
   });
-
 });
 
 class PrettyBytes extends Uint8Array {

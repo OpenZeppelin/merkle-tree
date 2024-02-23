@@ -13,4 +13,5 @@ jobs:
       - name: Set up environment
         uses: ./.github/actions/setup
       - run: npm run coverage -- --forbid-only
+      - run: npm run lint
       - uses: codecov/codecov-action@v3
