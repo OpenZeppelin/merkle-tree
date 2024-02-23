@@ -1,10 +1,8 @@
 import { keccak256 } from "@ethersproject/keccak256";
 import { defaultAbiCoder } from "@ethersproject/abi";
-import { BytesLike, HexString, toHex, isBytesLike } from "./bytes";
+import { BytesLike, HexString, toHex } from "./bytes";
 import { MultiProof, processProof, processMultiProof } from "./core";
-
-import { SimpleMerkleTree } from "./simple";
-import { MerkleTreeData } from "./interface";
+import { MerkleTreeData, MerkleTreeImpl } from "./merkletree";
 import { MerkleTreeOptions } from "./options";
 import { throwError } from "./utils/throw-error";
 
@@ -14,7 +12,7 @@ export function standardLeafHasher<T extends BytesLike[] = BytesLike[]>(types: s
   return (value: T) => keccak256(keccak256(defaultAbiCoder.encode(types, value)));
 }
 
-export class StandardMerkleTree<T extends any[]> extends SimpleMerkleTree<T> {
+export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
   protected constructor(
     protected readonly tree: HexString[],
     protected readonly values: StandardMerkleTreeData<T>['values'],
@@ -28,7 +26,7 @@ export class StandardMerkleTree<T extends any[]> extends SimpleMerkleTree<T> {
     leafEncoding: string[],
     options: MerkleTreeOptions = {}
   ): StandardMerkleTree<T> {
-    const [ tree, indexedValues ] = SimpleMerkleTree.prepare(
+    const [ tree, indexedValues ] = MerkleTreeImpl.prepare(
       values,
       options,
       standardLeafHasher(leafEncoding),
