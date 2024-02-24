@@ -29,9 +29,9 @@ export interface MerkleTree<T extends any> {
   validate(): void;
   leafLookup(leaf: T): number;
   getProof(leaf: number | T): HexString[];
-  getMultiProof(leaves: (number | T)[]): MultiProof<T>;
+  getMultiProof(leaves: (number | T)[]): MultiProof<HexString, T>;
   verify(leaf: number | T, proof: HexString[]): boolean;
-  verifyMultiProof(multiproof: MultiProof<number | T>): boolean;
+  verifyMultiProof(multiproof: MultiProof<BytesLike, number | T>): boolean;
 }
 
 export class MerkleTreeImpl<T> implements MerkleTree<T> {
@@ -128,7 +128,7 @@ export class MerkleTreeImpl<T> implements MerkleTree<T> {
     return proof;
   }
 
-  getMultiProof(leaves: (number | T)[]): MultiProof<T> {
+  getMultiProof(leaves: (number | T)[]): MultiProof<HexString, T> {
     // input validity
     const valueIndices = leaves.map(leaf => (typeof leaf === 'number' ? leaf : this.leafLookup(leaf)));
     for (const valueIndex of valueIndices) this.validateValue(valueIndex);
@@ -154,7 +154,7 @@ export class MerkleTreeImpl<T> implements MerkleTree<T> {
     return this._verify(this.leafHash(leaf), proof);
   }
 
-  verifyMultiProof(multiproof: MultiProof<number | T>): boolean {
+  verifyMultiProof(multiproof: MultiProof<BytesLike, number | T>): boolean {
     return this._verifyMultiProof({
       leaves: multiproof.leaves.map(l => this.leafHash(l)),
       proof: multiproof.proof,

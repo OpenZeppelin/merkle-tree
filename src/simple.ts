@@ -26,7 +26,7 @@ export class SimpleMerkleTree extends MerkleTreeImpl<BytesLike> {
     return toHex(root) === processProof(formatLeaf(leaf), proof);
   }
 
-  static verifyMultiProof(root: BytesLike, multiproof: MultiProof<BytesLike>): boolean {
+  static verifyMultiProof(root: BytesLike, multiproof: MultiProof<BytesLike, BytesLike>): boolean {
     return toHex(root) === processMultiProof(multiproof);
   }
 }

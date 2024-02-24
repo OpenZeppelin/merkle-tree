@@ -49,7 +49,7 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
   static verifyMultiProof<T extends any[]>(
     root: BytesLike,
     leafEncoding: string[],
-    multiproof: MultiProof<T>,
+    multiproof: MultiProof<BytesLike, T>,
   ): boolean {
     return (
       toHex(root) ===

@@ -55,9 +55,9 @@ export function processProof(leaf: BytesLike, proof: BytesLike[]): HexString {
   return toHex(proof.reduce(hashPair, leaf));
 }
 
-export interface MultiProof<T> {
-  leaves: T[];
-  proof: HexString[];
+export interface MultiProof<T, L = T> {
+  leaves: L[];
+  proof: T[];
   proofFlags: boolean[];
 }
 
