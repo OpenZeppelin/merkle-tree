@@ -5,20 +5,22 @@ import { throwError } from './utils/throw-error';
 
 const hashPair = (a: Bytes, b: Bytes) => keccak256(concatBytes(...[a, b].sort(compareBytes)));
 
-const leftChildIndex  = (i: number) => 2 * i + 1;
+const leftChildIndex = (i: number) => 2 * i + 1;
 const rightChildIndex = (i: number) => 2 * i + 2;
-const parentIndex     = (i: number) => i > 0 ? Math.floor((i - 1) / 2) : throwError('Root has no parent');
-const siblingIndex    = (i: number) => i > 0 ? i - (-1) ** (i % 2)     : throwError('Root has no siblings');
+const parentIndex = (i: number) => (i > 0 ? Math.floor((i - 1) / 2) : throwError('Root has no parent'));
+const siblingIndex = (i: number) => (i > 0 ? i - (-1) ** (i % 2) : throwError('Root has no siblings'));
 
-const isTreeNode        = (tree: unknown[], i: number) => i >= 0 && i < tree.length;
-const isInternalNode    = (tree: unknown[], i: number) => isTreeNode(tree, leftChildIndex(i));
-const isLeafNode        = (tree: unknown[], i: number) => isTreeNode(tree, i) && !isInternalNode(tree, i);
+const isTreeNode = (tree: unknown[], i: number) => i >= 0 && i < tree.length;
+const isInternalNode = (tree: unknown[], i: number) => isTreeNode(tree, leftChildIndex(i));
+const isLeafNode = (tree: unknown[], i: number) => isTreeNode(tree, i) && !isInternalNode(tree, i);
 const isValidMerkleNode = (node: Bytes) => node instanceof Uint8Array && node.length === 32;
 
-const checkTreeNode        = (tree: unknown[], i: number) => void (isTreeNode(tree, i)     || throwError('Index is not in tree'));
-const checkInternalNode    = (tree: unknown[], i: number) => void (isInternalNode(tree, i) || throwError('Index is not an internal tree node'));
-const checkLeafNode        = (tree: unknown[], i: number) => void (isLeafNode(tree, i)     || throwError('Index is not a leaf'));
-const checkValidMerkleNode = (node: Bytes)                => void (isValidMerkleNode(node) || throwError('Merkle tree nodes must be Uint8Array of length 32'));
+const checkTreeNode = (tree: unknown[], i: number) => void (isTreeNode(tree, i) || throwError('Index is not in tree'));
+const checkInternalNode = (tree: unknown[], i: number) =>
+  void (isInternalNode(tree, i) || throwError('Index is not an internal tree node'));
+const checkLeafNode = (tree: unknown[], i: number) => void (isLeafNode(tree, i) || throwError('Index is not a leaf'));
+const checkValidMerkleNode = (node: Bytes) =>
+  void (isValidMerkleNode(node) || throwError('Merkle tree nodes must be Uint8Array of length 32'));
 
 export function makeMerkleTree(leaves: Bytes[]): Bytes[] {
   leaves.forEach(checkValidMerkleNode);
@@ -33,10 +35,7 @@ export function makeMerkleTree(leaves: Bytes[]): Bytes[] {
     tree[tree.length - 1 - i] = leaf;
   }
   for (let i = tree.length - 1 - leaves.length; i >= 0; i--) {
-    tree[i] = hashPair(
-      tree[leftChildIndex(i)]!,
-      tree[rightChildIndex(i)]!,
-    );
+    tree[i] = hashPair(tree[leftChildIndex(i)]!, tree[rightChildIndex(i)]!);
   }
 
   return tree;
@@ -129,7 +128,7 @@ export function processMultiProof(multiproof: MultiProof<Bytes>): Bytes {
   }
 
   if (stack.length + proof.length !== 1) {
-      throw new Error('Broken invariant');
+    throw new Error('Broken invariant');
   }
 
   return stack.pop() ?? proof.shift()!;
@@ -169,10 +168,17 @@ export function renderMerkleTree(tree: Bytes[]): string {
     const [i, path] = stack.pop()!;
 
     lines.push(
-      path.slice(0, -1).map(p => ['   ', '│  '][p]).join('') +
-      path.slice(-1).map(p => ['└─ ', '├─ '][p]).join('') +
-      i + ') ' +
-      bytesToHex(tree[i]!)
+      path
+        .slice(0, -1)
+        .map(p => ['   ', '│  '][p])
+        .join('') +
+        path
+          .slice(-1)
+          .map(p => ['└─ ', '├─ '][p])
+          .join('') +
+        i +
+        ') ' +
+        bytesToHex(tree[i]!),
     );
 
     if (rightChildIndex(i) < tree.length) {
