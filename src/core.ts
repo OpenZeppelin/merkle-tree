@@ -22,7 +22,7 @@ export function makeMerkleTree(leaves: BytesLike[]): HexString[] {
   leaves.forEach(checkValidMerkleNode);
 
   if (leaves.length === 0) {
-    throw new Error('Expected non-zero number of leaves');
+    throwError('Expected non-zero number of leaves');
   }
 
   const tree = new Array<HexString>(2 * leaves.length - 1);
@@ -66,7 +66,7 @@ export function getMultiProof(tree: BytesLike[], indices: number[]): MultiProof<
   indices.sort((a, b) => b - a);
 
   if (indices.slice(1).some((i, p) => i === indices[p])) {
-    throw new Error('Cannot prove duplicated index');
+    throwError('Cannot prove duplicated index');
   }
 
   const stack = indices.concat(); // copy
@@ -104,11 +104,11 @@ export function processMultiProof(multiproof: MultiProof<BytesLike>): HexString 
   multiproof.proof.forEach(checkValidMerkleNode);
 
   if (multiproof.proof.length < multiproof.proofFlags.filter(b => !b).length) {
-    throw new Error('Invalid multiproof format');
+    throwError('Invalid multiproof format');
   }
 
   if (multiproof.leaves.length + multiproof.proof.length !== multiproof.proofFlags.length + 1) {
-    throw new Error('Provided leaves and multiproof are not compatible');
+    throwError('Provided leaves and multiproof are not compatible');
   }
 
   const stack = multiproof.leaves.concat(); // copy
@@ -118,13 +118,13 @@ export function processMultiProof(multiproof: MultiProof<BytesLike>): HexString 
     const a = stack.shift();
     const b = flag ? stack.shift() : proof.shift();
     if (a === undefined || b === undefined) {
-      throw new Error('Broken invariant');
+      throwError('Broken invariant');
     }
     stack.push(hashPair(a, b));
   }
 
   if (stack.length + proof.length !== 1) {
-    throw new Error('Broken invariant');
+    throwError('Broken invariant');
   }
 
   return toHex(stack.pop() ?? proof.shift()!);
@@ -153,7 +153,7 @@ export function isValidMerkleTree(tree: BytesLike[]): boolean {
 
 export function renderMerkleTree(tree: BytesLike[]): HexString {
   if (tree.length === 0) {
-    throw new Error('Expected non-zero number of nodes');
+    throwError('Expected non-zero number of nodes');
   }
 
   const stack: [number, number[]][] = [[0, []]];

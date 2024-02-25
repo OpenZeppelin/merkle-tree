@@ -37,7 +37,7 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
 
   static load<T extends any[]>(data: StandardMerkleTreeData<T>): StandardMerkleTree<T> {
     if (data.format !== 'standard-v1') {
-      throw new Error(`Unknown format '${data.format}'`);
+      throwError(`Unknown format '${data.format}'`);
     }
     if (data.leafEncoding === undefined) {
       throwError('Expected leaf encoding');
