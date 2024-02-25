@@ -12,8 +12,7 @@ import {
 } from './core';
 
 import { MerkleTreeOptions, defaultOptions } from './options';
-import { checkBounds } from './utils/check-bounds';
-import { throwError } from './utils/throw-error';
+import { invariant } from './utils/errors';
 
 export type MerkleTreeData<T> = {
   format: string;
@@ -94,13 +93,13 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
     for (let i = 0; i < this.values.length; i++) {
       this.validateValue(i);
     }
-    if (!isValidMerkleTree(this.tree)) {
-      throwError('Merkle tree is invalid');
-    }
+    invariant(isValidMerkleTree(this.tree), 'Merkle tree is invalid');
   }
 
   leafLookup(leaf: T): number {
-    return this.hashLookup[toHex(this.leafHash(leaf))] ?? throwError('Leaf is not in tree');
+    const lookup = this.hashLookup[toHex(this.leafHash(leaf))];
+    invariant(typeof lookup !== 'undefined', 'Leaf is not in tree');
+    return lookup;
   }
 
   getProof(leaf: number | T): HexString[] {
@@ -113,9 +112,7 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
     const proof = getProof(this.tree, treeIndex);
 
     // sanity check proof
-    if (!this._verify(this.tree[treeIndex]!, proof)) {
-      throwError('Unable to prove value');
-    }
+    invariant(this._verify(this.tree[treeIndex]!, proof), 'Unable to prove value');
 
     // return proof in hex format
     return proof;
@@ -131,9 +128,7 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
     const proof = getMultiProof(this.tree, indices);
 
     // sanity check proof
-    if (!this._verifyMultiProof(proof)) {
-      throwError('Unable to prove values');
-    }
+    invariant(this._verifyMultiProof(proof), 'Unable to prove values');
 
     // return multiproof in hex format
     return {
@@ -156,13 +151,11 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
   }
 
   protected validateValue(valueIndex: number): HexString {
-    checkBounds(this.values, valueIndex);
+    invariant(valueIndex >= 0 && valueIndex < this.values.length, 'Index out of bounds');
     const { value: leaf, treeIndex } = this.values[valueIndex]!;
-    checkBounds(this.tree, treeIndex);
+    invariant(valueIndex >= 0 && valueIndex < this.values.length, 'Index out of bounds');
     const hashedLeaf = this.leafHash(leaf);
-    if (hashedLeaf !== this.tree[treeIndex]!) {
-      throwError('Merkle tree does not contain the expected value');
-    }
+    invariant(hashedLeaf === this.tree[treeIndex], 'Merkle tree does not contain the expected value');
     return hashedLeaf;
   }
 

@@ -31,7 +31,7 @@ describe('standard merkle tree', () => {
               tree: [zero],
               values: [{ value: ['0'], treeIndex: 0 }],
             } as StandardMerkleTreeData<[string]>),
-          /^Error: Expected leaf encoding$/,
+          /^InvalidArgumentError: Expected leaf encoding$/,
         );
       });
 
@@ -125,7 +125,7 @@ describe('standard merkle tree', () => {
       });
 
       it('reject out of bounds value index', () => {
-        assert.throws(() => tree.getProof(leaves.length), /^Error: Index out of bounds$/);
+        assert.throws(() => tree.getProof(leaves.length), /^InvariantError: Index out of bounds$/);
       });
     });
   }
@@ -138,7 +138,7 @@ describe('standard merkle tree', () => {
             format: 'nonstandard',
             leafEncoding: ['string'],
           } as any),
-        /^Error: Unknown format 'nonstandard'$/,
+        /^InvalidArgumentError: Unknown format 'nonstandard'$/,
       );
 
       assert.throws(
@@ -147,7 +147,7 @@ describe('standard merkle tree', () => {
             format: 'simple-v1',
             leafEncoding: ['string'],
           } as any),
-        /^Error: Unknown format 'simple-v1'$/,
+        /^InvalidArgumentError: Unknown format 'simple-v1'$/,
       );
     });
 
@@ -158,7 +158,7 @@ describe('standard merkle tree', () => {
         values: [{ value: ['0'], treeIndex: 0 }],
         leafEncoding: ['uint256'],
       });
-      assert.throws(() => loadedTree1.getProof(0), /^Error: Merkle tree does not contain the expected value$/);
+      assert.throws(() => loadedTree1.getProof(0), /^InvariantError: Merkle tree does not contain the expected value$/);
 
       const loadedTree2 = StandardMerkleTree.load({
         format: 'standard-v1',
@@ -166,7 +166,7 @@ describe('standard merkle tree', () => {
         values: [{ value: ['0'], treeIndex: 2 }],
         leafEncoding: ['uint256'],
       });
-      assert.throws(() => loadedTree2.getProof(0), /^Error: Unable to prove value$/);
+      assert.throws(() => loadedTree2.getProof(0), /^InvariantError: Unable to prove value$/);
     });
   });
 });

@@ -4,7 +4,7 @@ import { BytesLike, HexString, toHex } from './bytes';
 import { MultiProof, processProof, processMultiProof } from './core';
 import { MerkleTreeData, MerkleTreeImpl } from './merkletree';
 import { MerkleTreeOptions } from './options';
-import { throwError } from './utils/throw-error';
+import { validateArgument } from './utils/errors';
 
 export type StandardMerkleTreeData<T extends any[]> = MerkleTreeData<T> & {
   format: 'standard-v1';
@@ -36,12 +36,8 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
   }
 
   static load<T extends any[]>(data: StandardMerkleTreeData<T>): StandardMerkleTree<T> {
-    if (data.format !== 'standard-v1') {
-      throwError(`Unknown format '${data.format}'`);
-    }
-    if (data.leafEncoding === undefined) {
-      throwError('Expected leaf encoding');
-    }
+    validateArgument(data.format === 'standard-v1', `Unknown format '${data.format}'`);
+    validateArgument(data.leafEncoding !== undefined, 'Expected leaf encoding');
     return new StandardMerkleTree(data.tree, data.values, data.leafEncoding);
   }
 

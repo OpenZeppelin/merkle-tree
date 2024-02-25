@@ -55,12 +55,12 @@ describe('core properties', () => {
 
 describe('core error conditions', () => {
   it('zero leaves', () => {
-    assert.throws(() => makeMerkleTree([]), /^Error: Expected non-zero number of leaves$/);
+    assert.throws(() => makeMerkleTree([]), /^InvalidArgumentError: Expected non-zero number of leaves$/);
   });
 
   it('multiproof duplicate index', () => {
     const tree = makeMerkleTree(new Array(2).fill(zero));
-    assert.throws(() => getMultiProof(tree, [1, 1]), /^Error: Cannot prove duplicated index$/);
+    assert.throws(() => getMultiProof(tree, [1, 1]), /^InvalidArgumentError: Cannot prove duplicated index$/);
   });
 
   it('tree validity', () => {
@@ -68,7 +68,7 @@ describe('core error conditions', () => {
     assert(!isValidMerkleTree([zero, zero]), 'even number of nodes');
     assert(!isValidMerkleTree([zero, zero, zero]), 'inner node not hash of children');
 
-    assert.throws(() => renderMerkleTree([]), /^Error: Expected non-zero number of nodes$/);
+    assert.throws(() => renderMerkleTree([]), /^InvalidArgumentError: Expected non-zero number of nodes$/);
   });
 
   it('multiproof invariants', () => {
@@ -81,6 +81,6 @@ describe('core error conditions', () => {
       proofFlags: [true, true, false],
     };
 
-    assert.throws(() => processMultiProof(badMultiProof), /^Error: Broken invariant$/);
+    assert.throws(() => processMultiProof(badMultiProof), /^InvariantError$/);
   });
 });

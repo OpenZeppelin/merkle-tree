@@ -1,6 +1,6 @@
 import { keccak256 } from '@ethersproject/keccak256';
 import { BytesLike, HexString, toHex, toBytes, concat, compare } from './bytes';
-import { throwError } from './utils/throw-error';
+import { invariant, throwError, validateArgument } from './utils/errors';
 
 const hashPair = (a: BytesLike, b: BytesLike): HexString => keccak256(concat([a, b].sort(compare)));
 
@@ -21,9 +21,7 @@ const checkValidMerkleNode = (node: BytesLike) =>
 export function makeMerkleTree(leaves: BytesLike[]): HexString[] {
   leaves.forEach(checkValidMerkleNode);
 
-  if (leaves.length === 0) {
-    throwError('Expected non-zero number of leaves');
-  }
+  validateArgument(leaves.length !== 0, 'Expected non-zero number of leaves');
 
   const tree = new Array<HexString>(2 * leaves.length - 1);
 
@@ -65,9 +63,7 @@ export function getMultiProof(tree: BytesLike[], indices: number[]): MultiProof<
   indices.forEach(i => checkLeafNode(tree, i));
   indices.sort((a, b) => b - a);
 
-  if (indices.slice(1).some((i, p) => i === indices[p])) {
-    throwError('Cannot prove duplicated index');
-  }
+  validateArgument(!indices.slice(1).some((i, p) => i === indices[p]), 'Cannot prove duplicated index');
 
   const stack = indices.concat(); // copy
   const proof = [];
@@ -103,13 +99,14 @@ export function processMultiProof(multiproof: MultiProof<BytesLike>): HexString 
   multiproof.leaves.forEach(checkValidMerkleNode);
   multiproof.proof.forEach(checkValidMerkleNode);
 
-  if (multiproof.proof.length < multiproof.proofFlags.filter(b => !b).length) {
-    throwError('Invalid multiproof format');
-  }
-
-  if (multiproof.leaves.length + multiproof.proof.length !== multiproof.proofFlags.length + 1) {
-    throwError('Provided leaves and multiproof are not compatible');
-  }
+  validateArgument(
+    multiproof.proof.length >= multiproof.proofFlags.filter(b => !b).length,
+    'Invalid multiproof format',
+  );
+  validateArgument(
+    multiproof.leaves.length + multiproof.proof.length === multiproof.proofFlags.length + 1,
+    'Provided leaves and multiproof are not compatible',
+  );
 
   const stack = multiproof.leaves.concat(); // copy
   const proof = multiproof.proof.concat(); // copy
@@ -117,15 +114,11 @@ export function processMultiProof(multiproof: MultiProof<BytesLike>): HexString 
   for (const flag of multiproof.proofFlags) {
     const a = stack.shift();
     const b = flag ? stack.shift() : proof.shift();
-    if (a === undefined || b === undefined) {
-      throwError('Broken invariant');
-    }
+    invariant(a !== undefined && b !== undefined);
     stack.push(hashPair(a, b));
   }
 
-  if (stack.length + proof.length !== 1) {
-    throwError('Broken invariant');
-  }
+  invariant(stack.length + proof.length === 1);
 
   return toHex(stack.pop() ?? proof.shift()!);
 }
@@ -152,9 +145,7 @@ export function isValidMerkleTree(tree: BytesLike[]): boolean {
 }
 
 export function renderMerkleTree(tree: BytesLike[]): HexString {
-  if (tree.length === 0) {
-    throwError('Expected non-zero number of nodes');
-  }
+  validateArgument(tree.length !== 0, 'Expected non-zero number of nodes');
 
   const stack: [number, number[]][] = [[0, []]];
 

@@ -96,14 +96,14 @@ describe('simple merkle tree', () => {
       });
 
       it('reject out of bounds value index', () => {
-        assert.throws(() => tree.getProof(leaves.length), /^Error: Index out of bounds$/);
+        assert.throws(() => tree.getProof(leaves.length), /^InvariantError: Index out of bounds$/);
       });
 
       it('reject invalid leaf size', () => {
         const invalidLeaf = [zero + '00']; // 33 bytes (all zero)
         assert.throws(
           () => SimpleMerkleTree.of(invalidLeaf, opts),
-          `Error: ${invalidLeaf} is not a valid 32 bytes object (pos: 0)`,
+          `InvalidArgumentError: ${invalidLeaf} is not a valid 32 bytes object (pos: 0)`,
         );
       });
     });
@@ -113,12 +113,12 @@ describe('simple merkle tree', () => {
     it('reject unrecognized tree dump', () => {
       assert.throws(
         () => SimpleMerkleTree.load({ format: 'nonstandard' } as any),
-        /^Error: Unknown format 'nonstandard'$/,
+        /^InvalidArgumentError: Unknown format 'nonstandard'$/,
       );
 
       assert.throws(
         () => SimpleMerkleTree.load({ format: 'standard-v1' } as any),
-        /^Error: Unknown format 'standard-v1'$/,
+        /^InvalidArgumentError: Unknown format 'standard-v1'$/,
       );
     });
 
@@ -133,14 +133,14 @@ describe('simple merkle tree', () => {
           },
         ],
       });
-      assert.throws(() => loadedTree1.getProof(0), /^Error: Merkle tree does not contain the expected value$/);
+      assert.throws(() => loadedTree1.getProof(0), /^InvariantError: Merkle tree does not contain the expected value$/);
 
       const loadedTree2 = SimpleMerkleTree.load({
         format: 'simple-v1',
         tree: [zero, zero, zero],
         values: [{ value: zero, treeIndex: 2 }],
       });
-      assert.throws(() => loadedTree2.getProof(0), /^Error: Unable to prove value$/);
+      assert.throws(() => loadedTree2.getProof(0), /^InvariantError: Unable to prove value$/);
     });
   });
 });

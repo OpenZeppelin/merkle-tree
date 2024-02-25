@@ -3,7 +3,7 @@ import { BytesLike, HexString, toHex } from './bytes';
 import { MultiProof, processProof, processMultiProof } from './core';
 import { MerkleTreeData, MerkleTreeImpl } from './merkletree';
 import { MerkleTreeOptions } from './options';
-import { throwError } from './utils/throw-error';
+import { validateArgument } from './utils/errors';
 
 export type StandardMerkleTreeData<T> = MerkleTreeData<T> & {
   format: 'simple-v1';
@@ -20,9 +20,7 @@ export class SimpleMerkleTree extends MerkleTreeImpl<BytesLike> {
   }
 
   static load(data: StandardMerkleTreeData<BytesLike>): SimpleMerkleTree {
-    if (data.format !== 'simple-v1') {
-      throwError(`Unknown format '${data.format}'`);
-    }
+    validateArgument(data.format === 'simple-v1', `Unknown format '${data.format}'`);
     return new SimpleMerkleTree(data.tree, data.values, formatLeaf);
   }
 
