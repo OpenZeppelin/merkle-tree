@@ -69,11 +69,6 @@ describe('standard merkle tree', () => {
 
           assert(tree.verifyMultiProof(proof1));
           assert(StandardMerkleTree.verifyMultiProof(tree.root, ['string'], proof1));
-          // assert(
-          //   StandardMerkleTree.verifyMultiProof(tree.root, proof1, {
-          //     leafEncoding: ["string"],
-          //   })
-          // );
         }
       });
 
@@ -82,11 +77,6 @@ describe('standard merkle tree', () => {
 
         assert(!tree.verifyMultiProof(multiProof));
         assert(!StandardMerkleTree.verifyMultiProof(tree.root, ['string'], multiProof));
-        // assert(
-        //   !StandardMerkleTree.verifyMultiProof(tree.root, multiProof, {
-        //     leafEncoding: ["string"],
-        //   })
-        // );
       });
 
       it('renders tree representation', () => {

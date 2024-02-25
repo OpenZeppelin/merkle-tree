@@ -5,17 +5,21 @@ import { MerkleTreeData, MerkleTreeImpl } from './merkletree';
 import { MerkleTreeOptions } from './options';
 import { throwError } from './utils/throw-error';
 
+export type StandardMerkleTreeData<T> = MerkleTreeData<T> & {
+  format: 'simple-v1';
+};
+
 export function formatLeaf(value: BytesLike): HexString {
   return defaultAbiCoder.encode(['bytes32'], [value]);
 }
 
 export class SimpleMerkleTree extends MerkleTreeImpl<BytesLike> {
-  static of = (values: BytesLike[], options: MerkleTreeOptions = {}): SimpleMerkleTree => {
+  static of(values: BytesLike[], options: MerkleTreeOptions = {}): SimpleMerkleTree {
     const [tree, indexedValues] = MerkleTreeImpl.prepare(values, options, formatLeaf);
     return new SimpleMerkleTree(tree, indexedValues, formatLeaf);
-  };
+  }
 
-  static load(data: MerkleTreeData<BytesLike>): SimpleMerkleTree {
+  static load(data: StandardMerkleTreeData<BytesLike>): SimpleMerkleTree {
     if (data.format !== 'simple-v1') {
       throwError(`Unknown format '${data.format}'`);
     }
@@ -28,5 +32,13 @@ export class SimpleMerkleTree extends MerkleTreeImpl<BytesLike> {
 
   static verifyMultiProof(root: BytesLike, multiproof: MultiProof<BytesLike, BytesLike>): boolean {
     return toHex(root) === processMultiProof(multiproof);
+  }
+
+  dump(): StandardMerkleTreeData<BytesLike> {
+    return {
+      format: 'simple-v1',
+      tree: this.tree,
+      values: this.values,
+    };
   }
 }

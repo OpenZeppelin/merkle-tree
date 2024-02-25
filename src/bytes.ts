@@ -1,7 +1,7 @@
 import type { BytesLike } from '@ethersproject/bytes';
 type HexString = string;
 
-import { isBytesLike, arrayify as toBytes, hexlify as toHex, concat, isBytes } from '@ethersproject/bytes';
+import { arrayify as toBytes, hexlify as toHex, concat } from '@ethersproject/bytes';
 
 function compare(a: BytesLike, b: BytesLike): number {
   const diff = BigInt(toHex(a)) - BigInt(toHex(b));
@@ -9,4 +9,4 @@ function compare(a: BytesLike, b: BytesLike): number {
 }
 
 export type { HexString, BytesLike };
-export { isBytesLike, toBytes, toHex, concat, compare, isBytes };
+export { toBytes, toHex, concat, compare };

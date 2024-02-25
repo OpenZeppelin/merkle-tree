@@ -7,6 +7,7 @@ import { MerkleTreeOptions } from './options';
 import { throwError } from './utils/throw-error';
 
 export type StandardMerkleTreeData<T extends any[]> = MerkleTreeData<T> & {
+  format: 'standard-v1';
   leafEncoding: string[];
 };
 
@@ -20,7 +21,7 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
     protected readonly values: StandardMerkleTreeData<T>['values'],
     protected readonly leafEncoding: string[],
   ) {
-    super(tree, values, standardLeafHasher.bind(null, leafEncoding));
+    super(tree, values, leaf => standardLeafHasher(leafEncoding, leaf));
   }
 
   static of<T extends any[]>(
@@ -28,7 +29,9 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
     leafEncoding: string[],
     options: MerkleTreeOptions = {},
   ): StandardMerkleTree<T> {
-    const [tree, indexedValues] = MerkleTreeImpl.prepare(values, options, standardLeafHasher.bind(null, leafEncoding));
+    const [tree, indexedValues] = MerkleTreeImpl.prepare(values, options, leaf =>
+      standardLeafHasher(leafEncoding, leaf),
+    );
     return new StandardMerkleTree(tree, indexedValues, leafEncoding);
   }
 
@@ -64,9 +67,9 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
   dump(): StandardMerkleTreeData<T> {
     return {
       format: 'standard-v1',
+      leafEncoding: this.leafEncoding,
       tree: this.tree,
       values: this.values,
-      leafEncoding: this.leafEncoding,
     };
   }
 }

@@ -21,9 +21,8 @@ export type MerkleTreeData<T> = {
   values: { value: T; treeIndex: number }[];
 };
 
-export interface MerkleTree<T extends any> {
+export interface MerkleTree<T> {
   root: HexString;
-  dump(): MerkleTreeData<T>;
   render(): string;
   entries(): Iterable<[number, T]>;
   validate(): void;
@@ -34,7 +33,7 @@ export interface MerkleTree<T extends any> {
   verifyMultiProof(multiproof: MultiProof<BytesLike, number | T>): boolean;
 }
 
-export class MerkleTreeImpl<T> implements MerkleTree<T> {
+export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
   private readonly hashLookup: { [hash: HexString]: number };
 
   protected constructor(
@@ -79,13 +78,7 @@ export class MerkleTreeImpl<T> implements MerkleTree<T> {
     return this.tree[0]!;
   }
 
-  dump(): MerkleTreeData<T> {
-    return {
-      format: 'simple-v1',
-      tree: this.tree,
-      values: this.values,
-    };
-  }
+  abstract dump(): MerkleTreeData<T>;
 
   render() {
     return renderMerkleTree(this.tree);
