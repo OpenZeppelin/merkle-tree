@@ -40,7 +40,7 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
   protected constructor(
     protected readonly tree: HexString[],
     protected readonly values: MerkleTreeData<T>['values'],
-    public readonly leafHash: (leaf: T) => HexString,
+    public readonly leafHash: MerkleTree<T>['leafHash']
   ) {
     this.hashLookup = Object.fromEntries(values.map(({ treeIndex }, valueIndex) => [tree.at(treeIndex), valueIndex]));
   }
@@ -48,7 +48,7 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
   protected static prepare<T>(
     values: T[],
     options: MerkleTreeOptions = {},
-    leafHash: (value: T) => HexString,
+    leafHash: MerkleTree<T>['leafHash'],
   ): [tree: HexString[], indexedValues: MerkleTreeData<T>['values']] {
     const sortLeaves = options.sortLeaves ?? defaultOptions.sortLeaves;
     const hashedValues = values.map((value, valueIndex) => ({ value, valueIndex, hash: leafHash(value) }));
