@@ -83,8 +83,8 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
     }
   }
 
-  validate() {
-    this.values.forEach((_, i) => this._verifyAndHash(i));
+  validate(): void {
+    this.values.forEach((_, i) => this._validateValueAt(i));
     invariant(isValidMerkleTree(this.tree), 'Merkle tree is invalid');
   }
 
@@ -97,7 +97,7 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
   getProof(leaf: number | T): HexString[] {
     // input validity
     const valueIndex = typeof leaf === 'number' ? leaf : this.leafLookup(leaf);
-    this._verifyAndHash(valueIndex);
+    this._validateValueAt(valueIndex);
 
     // rebuild tree index and generate proof
     const { treeIndex } = this.values[valueIndex]!;
@@ -113,7 +113,7 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
   getMultiProof(leaves: (number | T)[]): MultiProof<HexString, T> {
     // input validity
     const valueIndices = leaves.map(leaf => (typeof leaf === 'number' ? leaf : this.leafLookup(leaf)));
-    for (const valueIndex of valueIndices) this._verifyAndHash(valueIndex);
+    for (const valueIndex of valueIndices) this._validateValueAt(valueIndex);
 
     // rebuild tree indices and generate proof
     const indices = valueIndices.map(i => this.values[i]!.treeIndex);
@@ -142,20 +142,18 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
     });
   }
 
-  private _verifyAndHash(index: number): HexString {
+  private _validateValueAt(index: number): void {
     validateArgument(this.values.at(index) !== undefined, 'Index out of bounds');
     const { value, treeIndex } = this.values[index]!;
-    const hashedLeaf = this.leafHash(value);
-    invariant(this.tree.at(treeIndex) === hashedLeaf, 'Merkle tree does not contain the expected value');
-    return hashedLeaf;
+    invariant(this.tree.at(treeIndex) === this.leafHash(value), 'Merkle tree does not contain the expected value');
   }
 
   private _leafHash(leaf: number | T): HexString {
     if (typeof leaf === 'number') {
-      return this._verifyAndHash(leaf);
-    } else {
-      return this.leafHash(leaf);
+      validateArgument(this.values.at(leaf) !== undefined, 'Index out of bounds');
+      leaf = this.values[leaf]?.value;
     }
+    return this.leafHash(leaf);
   }
 
   private _verify(leafHash: BytesLike, proof: BytesLike[]): boolean {

@@ -29,9 +29,7 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
     leafEncoding: string[],
     options: MerkleTreeOptions = {},
   ): StandardMerkleTree<T> {
-    const [tree, indexedValues] = MerkleTreeImpl.prepare(values, options, leaf =>
-      standardLeafHash(leafEncoding, leaf),
-    );
+    const [tree, indexedValues] = MerkleTreeImpl.prepare(values, options, leaf => standardLeafHash(leafEncoding, leaf));
     return new StandardMerkleTree(tree, indexedValues, leafEncoding);
   }
 
