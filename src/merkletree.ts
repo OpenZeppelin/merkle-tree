@@ -23,6 +23,7 @@ export type MerkleTreeData<T> = {
 export interface MerkleTree<T> {
   root: HexString;
   render(): string;
+  dump(): MerkleTreeData<T>;
   entries(): Iterable<[number, T]>;
   validate(): void;
   leafHash(leaf: T): HexString;
@@ -31,7 +32,6 @@ export interface MerkleTree<T> {
   getMultiProof(leaves: (number | T)[]): MultiProof<HexString, T>;
   verify(leaf: number | T, proof: HexString[]): boolean;
   verifyMultiProof(multiproof: MultiProof<BytesLike, number | T>): boolean;
-  dump(): MerkleTreeData<T>;
 }
 
 export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
@@ -42,6 +42,10 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
     protected readonly values: MerkleTreeData<T>['values'],
     public readonly leafHash: MerkleTree<T>['leafHash'],
   ) {
+    validateArgument(
+      values.every(({ value }) => typeof value != 'number'),
+      'Leaf values cannot be numbers',
+    );
     this.hashLookup = Object.fromEntries(values.map(({ treeIndex }, valueIndex) => [tree[treeIndex], valueIndex]));
   }
 
