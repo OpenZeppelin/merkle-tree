@@ -42,7 +42,7 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
     protected readonly values: MerkleTreeData<T>['values'],
     public readonly leafHash: MerkleTree<T>['leafHash'],
   ) {
-    this.hashLookup = Object.fromEntries(values.map(({ treeIndex }, valueIndex) => [tree.at(treeIndex), valueIndex]));
+    this.hashLookup = Object.fromEntries(values.map(({ treeIndex }, valueIndex) => [tree[treeIndex], valueIndex]));
   }
 
   protected static prepare<T>(
@@ -143,15 +143,19 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
   }
 
   private _validateValueAt(index: number): void {
-    validateArgument(this.values.at(index) !== undefined, 'Index out of bounds');
-    const { value, treeIndex } = this.values[index]!;
-    invariant(this.tree.at(treeIndex) === this.leafHash(value), 'Merkle tree does not contain the expected value');
+    const value = this.values[index];
+    validateArgument(value !== undefined, 'Index out of bounds');
+    invariant(
+      this.tree[value.treeIndex] === this.leafHash(value.value),
+      'Merkle tree does not contain the expected value',
+    );
   }
 
   private _leafHash(leaf: number | T): HexString {
     if (typeof leaf === 'number') {
-      validateArgument(this.values.at(leaf) !== undefined, 'Index out of bounds');
-      leaf = this.values[leaf]?.value;
+      const lookup = this.values[leaf];
+      validateArgument(lookup !== undefined, 'Index out of bounds');
+      leaf = lookup.value;
     }
     return this.leafHash(leaf);
   }
