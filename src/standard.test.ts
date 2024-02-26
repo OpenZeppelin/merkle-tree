@@ -125,7 +125,7 @@ describe('standard merkle tree', () => {
       });
 
       it('reject out of bounds value index', () => {
-        assert.throws(() => tree.getProof(leaves.length), /^InvariantError: Index out of bounds$/);
+        assert.throws(() => tree.getProof(leaves.length), /^InvalidArgumentError: Index out of bounds$/);
       });
     });
   }

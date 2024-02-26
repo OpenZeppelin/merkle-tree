@@ -1,4 +1,4 @@
-import { BytesLike, HexString, toHex, compare } from './bytes';
+import { BytesLike, HexString, compare } from './bytes';
 
 import {
   MultiProof,
@@ -12,7 +12,7 @@ import {
 } from './core';
 
 import { MerkleTreeOptions, defaultOptions } from './options';
-import { invariant } from './utils/errors';
+import { validateArgument, invariant } from './utils/errors';
 
 export type MerkleTreeData<T> = {
   format: string;
@@ -25,6 +25,7 @@ export interface MerkleTree<T> {
   render(): string;
   entries(): Iterable<[number, T]>;
   validate(): void;
+  leafHash(leaf: T): HexString;
   leafLookup(leaf: T): number;
   getProof(leaf: number | T): HexString[];
   getMultiProof(leaves: (number | T)[]): MultiProof<HexString, T>;
@@ -39,7 +40,7 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
   protected constructor(
     protected readonly tree: HexString[],
     protected readonly values: MerkleTreeData<T>['values'],
-    protected readonly leafHasher: (leaf: T) => HexString,
+    public readonly leafHash: (leaf: T) => HexString,
   ) {
     this.hashLookup = Object.fromEntries(values.map(({ treeIndex }, valueIndex) => [tree.at(treeIndex), valueIndex]));
   }
@@ -50,12 +51,7 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
     leafHasher: (value: T) => HexString,
   ): [tree: HexString[], indexedValues: MerkleTreeData<T>['values']] {
     const sortLeaves = options.sortLeaves ?? defaultOptions.sortLeaves;
-
-    const hashedValues = values.map((value, valueIndex) => ({
-      value,
-      valueIndex,
-      hash: leafHasher(value),
-    }));
+    const hashedValues = values.map((value, valueIndex) => ({ value, valueIndex, hash: leafHasher(value) }));
 
     if (sortLeaves) {
       hashedValues.sort((a, b) => compare(a.hash, b.hash));
@@ -63,10 +59,7 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
 
     const tree = makeMerkleTree(hashedValues.map(v => v.hash));
 
-    const indexedValues = values.map(value => ({
-      value,
-      treeIndex: 0,
-    }));
+    const indexedValues = values.map(value => ({ value, treeIndex: 0 }));
     for (const [leafIndex, { valueIndex }] of hashedValues.entries()) {
       indexedValues[valueIndex]!.treeIndex = tree.length - leafIndex - 1;
     }
@@ -91,22 +84,23 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
   }
 
   validate() {
-    for (let i = 0; i < this.values.length; i++) {
-      this.validateValue(i);
-    }
-    invariant(isValidMerkleTree(this.tree), 'Merkle tree is invalid');
+    // Check values are correct, and tree is hashed correctly
+    invariant(
+      this.values.every((_, i) => this._verifyAndHash(i)) && isValidMerkleTree(this.tree),
+      'Merkle tree is invalid',
+    );
   }
 
   leafLookup(leaf: T): number {
-    const lookup = this.hashLookup[toHex(this.leafHash(leaf))];
-    invariant(typeof lookup !== 'undefined', 'Leaf is not in tree');
+    const lookup = this.hashLookup[this.leafHash(leaf)];
+    validateArgument(typeof lookup !== 'undefined', 'Leaf is not in tree');
     return lookup;
   }
 
   getProof(leaf: number | T): HexString[] {
     // input validity
     const valueIndex = typeof leaf === 'number' ? leaf : this.leafLookup(leaf);
-    this.validateValue(valueIndex);
+    this._verifyAndHash(valueIndex);
 
     // rebuild tree index and generate proof
     const { treeIndex } = this.values[valueIndex]!;
@@ -122,7 +116,7 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
   getMultiProof(leaves: (number | T)[]): MultiProof<HexString, T> {
     // input validity
     const valueIndices = leaves.map(leaf => (typeof leaf === 'number' ? leaf : this.leafLookup(leaf)));
-    for (const valueIndex of valueIndices) this.validateValue(valueIndex);
+    for (const valueIndex of valueIndices) this._verifyAndHash(valueIndex);
 
     // rebuild tree indices and generate proof
     const indices = valueIndices.map(i => this.values[i]!.treeIndex);
@@ -140,31 +134,31 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
   }
 
   verify(leaf: number | T, proof: HexString[]): boolean {
-    return this._verify(this.leafHash(leaf), proof);
+    return this._verify(this._leafHash(leaf), proof);
   }
 
   verifyMultiProof(multiproof: MultiProof<BytesLike, number | T>): boolean {
     return this._verifyMultiProof({
-      leaves: multiproof.leaves.map(l => this.leafHash(l)),
+      leaves: multiproof.leaves.map(l => this._leafHash(l)),
       proof: multiproof.proof,
       proofFlags: multiproof.proofFlags,
     });
   }
 
-  protected validateValue(valueIndex: number): HexString {
-    invariant(valueIndex >= 0 && valueIndex < this.values.length, 'Index out of bounds');
-    const { value: leaf, treeIndex } = this.values[valueIndex]!;
-    invariant(valueIndex >= 0 && valueIndex < this.values.length, 'Index out of bounds');
+  private _verifyAndHash(index: number): HexString {
+    validateArgument(index >= 0 && index < this.values.length, 'Index out of bounds');
+    const { value: leaf, treeIndex } = this.values[index]!;
+    invariant(treeIndex >= 0 && treeIndex < this.tree.length, 'Index out of bounds');
     const hashedLeaf = this.leafHash(leaf);
     invariant(hashedLeaf === this.tree[treeIndex], 'Merkle tree does not contain the expected value');
     return hashedLeaf;
   }
 
-  protected leafHash(leaf: number | T): HexString {
+  private _leafHash(leaf: number | T): HexString {
     if (typeof leaf === 'number') {
-      return this.validateValue(leaf);
+      return this._verifyAndHash(leaf);
     } else {
-      return this.leafHasher(leaf);
+      return this.leafHash(leaf);
     }
   }
 
