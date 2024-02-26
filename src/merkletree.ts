@@ -147,8 +147,8 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
 
   private _verifyAndHash(index: number): HexString {
     validateArgument(this.values.at(index) !== undefined, 'Index out of bounds');
-    const { value: leaf, treeIndex } = this.values[index]!;
-    const hashedLeaf = this.leafHash(leaf);
+    const { value, treeIndex } = this.values[index]!;
+    const hashedLeaf = this.leafHash(value);
     invariant(this.tree.at(treeIndex) === hashedLeaf, 'Merkle tree does not contain the expected value');
     return hashedLeaf;
   }
