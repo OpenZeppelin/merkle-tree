@@ -5,7 +5,7 @@ import { MerkleTreeData, MerkleTreeImpl } from './merkletree';
 import { MerkleTreeOptions } from './options';
 import { validateArgument } from './utils/errors';
 
-export type SimpleMerkleTreeData<T> = MerkleTreeData<T> & {
+export type SimpleMerkleTreeData = MerkleTreeData<BytesLike> & {
   format: 'simple-v1';
 };
 
@@ -19,7 +19,7 @@ export class SimpleMerkleTree extends MerkleTreeImpl<BytesLike> {
     return new SimpleMerkleTree(tree, indexedValues, formatLeaf);
   }
 
-  static load(data: SimpleMerkleTreeData<BytesLike>): SimpleMerkleTree {
+  static load(data: SimpleMerkleTreeData): SimpleMerkleTree {
     validateArgument(data.format === 'simple-v1', `Unknown format '${data.format}'`);
     return new SimpleMerkleTree(data.tree, data.values, formatLeaf);
   }
@@ -32,7 +32,7 @@ export class SimpleMerkleTree extends MerkleTreeImpl<BytesLike> {
     return toHex(root) === processMultiProof(multiproof);
   }
 
-  dump(): SimpleMerkleTreeData<BytesLike> {
+  dump(): SimpleMerkleTreeData {
     return {
       format: 'simple-v1',
       tree: this.tree,
