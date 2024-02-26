@@ -84,11 +84,8 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
   }
 
   validate() {
-    // Check values are correct, and tree is hashed correctly
-    invariant(
-      this.values.every((_, i) => this._verifyAndHash(i)) && isValidMerkleTree(this.tree),
-      'Merkle tree is invalid',
-    );
+    this.values.forEach((_, i) => this._verifyAndHash(i));
+    invariant(isValidMerkleTree(this.tree), 'Merkle tree is invalid');
   }
 
   leafLookup(leaf: T): number {
