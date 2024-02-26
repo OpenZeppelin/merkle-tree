@@ -18,7 +18,7 @@ describe('load dumped trees', () => {
           SimpleMerkleTree.load(dump).validate();
           break;
         default:
-          assert.fail(`Unknown format '${dump.format}`);
+          assert.fail(`Unknown format '${dump.format}'`);
       }
     });
   }
