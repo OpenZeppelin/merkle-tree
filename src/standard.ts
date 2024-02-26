@@ -11,7 +11,7 @@ export type StandardMerkleTreeData<T extends any[]> = MerkleTreeData<T> & {
   leafEncoding: string[];
 };
 
-export function standardLeafHasher<T extends any[]>(types: string[], value: T): HexString {
+export function standardLeafHash<T extends any[]>(types: string[], value: T): HexString {
   return keccak256(keccak256(defaultAbiCoder.encode(types, value)));
 }
 
@@ -21,7 +21,7 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
     protected readonly values: StandardMerkleTreeData<T>['values'],
     protected readonly leafEncoding: string[],
   ) {
-    super(tree, values, leaf => standardLeafHasher(leafEncoding, leaf));
+    super(tree, values, leaf => standardLeafHash(leafEncoding, leaf));
   }
 
   static of<T extends any[]>(
@@ -30,7 +30,7 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
     options: MerkleTreeOptions = {},
   ): StandardMerkleTree<T> {
     const [tree, indexedValues] = MerkleTreeImpl.prepare(values, options, leaf =>
-      standardLeafHasher(leafEncoding, leaf),
+      standardLeafHash(leafEncoding, leaf),
     );
     return new StandardMerkleTree(tree, indexedValues, leafEncoding);
   }
@@ -42,7 +42,7 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
   }
 
   static verify<T extends any[]>(root: BytesLike, leafEncoding: string[], leaf: T, proof: BytesLike[]): boolean {
-    return toHex(root) === processProof(standardLeafHasher(leafEncoding, leaf), proof);
+    return toHex(root) === processProof(standardLeafHash(leafEncoding, leaf), proof);
   }
 
   static verifyMultiProof<T extends any[]>(
@@ -53,7 +53,7 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
     return (
       toHex(root) ===
       processMultiProof({
-        leaves: multiproof.leaves.map(leaf => standardLeafHasher(leafEncoding, leaf)),
+        leaves: multiproof.leaves.map(leaf => standardLeafHash(leafEncoding, leaf)),
         proof: multiproof.proof,
         proofFlags: multiproof.proofFlags,
       })

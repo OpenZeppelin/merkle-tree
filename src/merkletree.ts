@@ -48,10 +48,10 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
   protected static prepare<T>(
     values: T[],
     options: MerkleTreeOptions = {},
-    leafHasher: (value: T) => HexString,
+    leafHash: (value: T) => HexString,
   ): [tree: HexString[], indexedValues: MerkleTreeData<T>['values']] {
     const sortLeaves = options.sortLeaves ?? defaultOptions.sortLeaves;
-    const hashedValues = values.map((value, valueIndex) => ({ value, valueIndex, hash: leafHasher(value) }));
+    const hashedValues = values.map((value, valueIndex) => ({ value, valueIndex, hash: leafHash(value) }));
 
     if (sortLeaves) {
       hashedValues.sort((a, b) => compare(a.hash, b.hash));
