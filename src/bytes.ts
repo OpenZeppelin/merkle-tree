@@ -1,19 +1,12 @@
-import { bytesToHex } from 'ethereum-cryptography/utils';
+import type { BytesLike } from '@ethersproject/bytes';
+type HexString = string;
 
-export type Bytes = Uint8Array;
+import { arrayify as toBytes, hexlify as toHex, concat } from '@ethersproject/bytes';
 
-export function compareBytes(a: Bytes, b: Bytes): number {
-  const n = Math.min(a.length, b.length);
-
-  for (let i = 0; i < n; i++) {
-    if (a[i] !== b[i]) {
-      return a[i]! - b[i]!;
-    }
-  }
-
-  return a.length - b.length;
+function compare(a: BytesLike, b: BytesLike): number {
+  const diff = BigInt(toHex(a)) - BigInt(toHex(b));
+  return diff > 0 ? 1 : diff < 0 ? -1 : 0;
 }
 
-export function hex(b: Bytes): string {
-  return '0x' + bytesToHex(b);
-}
+export type { HexString, BytesLike };
+export { toBytes, toHex, concat, compare };

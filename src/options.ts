@@ -4,7 +4,7 @@ export type MerkleTreeOptions = Partial<{
   sortLeaves: boolean;
 }>;
 
-// Recommended (default) options.
+// Recommended (default) MerkleTree options.
 // - leaves are sorted by default to facilitate onchain verification of multiproofs.
 export const defaultOptions: Required<MerkleTreeOptions> = {
   sortLeaves: true,
