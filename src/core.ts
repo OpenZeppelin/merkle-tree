@@ -63,7 +63,10 @@ export function getMultiProof(tree: BytesLike[], indices: number[]): MultiProof<
   indices.forEach(i => checkLeafNode(tree, i));
   indices.sort((a, b) => b - a);
 
-  validateArgument(indices.slice(1).every((i, p) => i !== indices[p]), 'Cannot prove duplicated index');
+  validateArgument(
+    indices.slice(1).every((i, p) => i !== indices[p]),
+    'Cannot prove duplicated index',
+  );
 
   const stack = indices.concat(); // copy
   const proof = [];

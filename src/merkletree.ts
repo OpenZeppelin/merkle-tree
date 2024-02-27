@@ -18,7 +18,7 @@ export interface MerkleTreeData<T> {
   format: string;
   tree: HexString[];
   values: { value: T; treeIndex: number }[];
-};
+}
 
 export interface MerkleTree<T> {
   root: HexString;
