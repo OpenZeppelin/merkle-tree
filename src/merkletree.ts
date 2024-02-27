@@ -14,13 +14,13 @@ import {
 import { MerkleTreeOptions, defaultOptions } from './options';
 import { validateArgument, invariant } from './utils/errors';
 
-export type MerkleTreeData<T> = {
+export type MerkleTreeData<T extends Exclude<any, number>> = {
   format: string;
   tree: HexString[];
   values: { value: T; treeIndex: number }[];
 };
 
-export interface MerkleTree<T> {
+export interface MerkleTree<T extends Exclude<any, number>> {
   root: HexString;
   render(): string;
   dump(): MerkleTreeData<T>;
@@ -34,7 +34,7 @@ export interface MerkleTree<T> {
   verifyMultiProof(multiproof: MultiProof<BytesLike, number | T>): boolean;
 }
 
-export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
+export abstract class MerkleTreeImpl<T extends Exclude<any, number>> implements MerkleTree<T> {
   private readonly hashLookup: { [hash: HexString]: number };
 
   protected constructor(
@@ -49,7 +49,7 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
     this.hashLookup = Object.fromEntries(values.map(({ treeIndex }, valueIndex) => [tree[treeIndex], valueIndex]));
   }
 
-  protected static prepare<T>(
+  protected static prepare<T extends Exclude<any, number>>(
     values: T[],
     options: MerkleTreeOptions = {},
     leafHash: MerkleTree<T>['leafHash'],
