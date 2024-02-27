@@ -1,19 +1,14 @@
-import { keccak256 } from '@ethersproject/keccak256';
-import { defaultAbiCoder } from '@ethersproject/abi';
 import { BytesLike, HexString, toHex } from './bytes';
 import { MultiProof, processProof, processMultiProof } from './core';
 import { MerkleTreeData, MerkleTreeImpl } from './merkletree';
 import { MerkleTreeOptions } from './options';
+import { standardLeafHash } from './hashes';
 import { validateArgument } from './utils/errors';
 
-export interface StandardMerkleTreeData<T extends any[]> extends MerkleTreeData<T> {
+export type StandardMerkleTreeData<T extends any[]> = MerkleTreeData<T> & {
   format: 'standard-v1';
   leafEncoding: string[];
-}
-
-export function standardLeafHash<T extends any[]>(types: string[], value: T): HexString {
-  return keccak256(keccak256(defaultAbiCoder.encode(types, value)));
-}
+};
 
 export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
   protected constructor(
@@ -29,6 +24,7 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
     leafEncoding: string[],
     options: MerkleTreeOptions = {},
   ): StandardMerkleTree<T> {
+    // use default nodeHash (standardNodeHash)
     const [tree, indexedValues] = MerkleTreeImpl.prepare(values, options, leaf => standardLeafHash(leafEncoding, leaf));
     return new StandardMerkleTree(tree, indexedValues, leafEncoding);
   }
@@ -40,6 +36,7 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
   }
 
   static verify<T extends any[]>(root: BytesLike, leafEncoding: string[], leaf: T, proof: BytesLike[]): boolean {
+    // use default nodeHash (standardNodeHash) for processProof
     return toHex(root) === processProof(standardLeafHash(leafEncoding, leaf), proof);
   }
 
@@ -48,6 +45,7 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
     leafEncoding: string[],
     multiproof: MultiProof<BytesLike, T>,
   ): boolean {
+    // use default nodeHash (standardNodeHash) for processMultiProof
     return (
       toHex(root) ===
       processMultiProof({

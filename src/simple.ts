@@ -3,10 +3,12 @@ import { BytesLike, HexString, toHex } from './bytes';
 import { MultiProof, processProof, processMultiProof } from './core';
 import { MerkleTreeData, MerkleTreeImpl } from './merkletree';
 import { MerkleTreeOptions } from './options';
+import { NodeHash } from './hashes';
 import { validateArgument } from './utils/errors';
 
 export interface SimpleMerkleTreeData extends MerkleTreeData<HexString> {
   format: 'simple-v1';
+  hash?: 'custom';
 }
 
 export function formatLeaf(value: BytesLike): HexString {
@@ -14,22 +16,27 @@ export function formatLeaf(value: BytesLike): HexString {
 }
 
 export class SimpleMerkleTree extends MerkleTreeImpl<BytesLike> {
-  static of(values: BytesLike[], options: MerkleTreeOptions = {}): SimpleMerkleTree {
-    const [tree, indexedValues] = MerkleTreeImpl.prepare(values, options, formatLeaf);
-    return new SimpleMerkleTree(tree, indexedValues, formatLeaf);
+  static of(values: BytesLike[], options: MerkleTreeOptions & { nodeHash?: NodeHash } = {}): SimpleMerkleTree {
+    const [tree, indexedValues] = MerkleTreeImpl.prepare(values, options, formatLeaf, options.nodeHash);
+    return new SimpleMerkleTree(tree, indexedValues, formatLeaf, options.nodeHash);
   }
 
-  static load(data: SimpleMerkleTreeData): SimpleMerkleTree {
+  static load(data: SimpleMerkleTreeData, nodeHash?: NodeHash): SimpleMerkleTree {
     validateArgument(data.format === 'simple-v1', `Unknown format '${data.format}'`);
-    return new SimpleMerkleTree(data.tree, data.values, formatLeaf);
+    validateArgument(
+      (nodeHash == undefined) !== (data.hash == 'custom'),
+      nodeHash ? 'Data does not expect a custom node hashing function' : 'Data expects a custom node hashing function',
+    );
+
+    return new SimpleMerkleTree(data.tree, data.values, formatLeaf, nodeHash);
   }
 
-  static verify(root: BytesLike, leaf: BytesLike, proof: BytesLike[]): boolean {
-    return toHex(root) === processProof(formatLeaf(leaf), proof);
+  static verify(root: BytesLike, leaf: BytesLike, proof: BytesLike[], nodeHash?: NodeHash): boolean {
+    return toHex(root) === processProof(formatLeaf(leaf), proof, nodeHash);
   }
 
-  static verifyMultiProof(root: BytesLike, multiproof: MultiProof<BytesLike, BytesLike>): boolean {
-    return toHex(root) === processMultiProof(multiproof);
+  static verifyMultiProof(root: BytesLike, multiproof: MultiProof<BytesLike, BytesLike>, nodeHash?: NodeHash): boolean {
+    return toHex(root) === processMultiProof(multiproof, nodeHash);
   }
 
   dump(): SimpleMerkleTreeData {
@@ -37,6 +44,7 @@ export class SimpleMerkleTree extends MerkleTreeImpl<BytesLike> {
       format: 'simple-v1',
       tree: this.tree,
       values: this.values.map(({ value, treeIndex }) => ({ value: toHex(value), treeIndex })),
+      hash: this.nodeHash ? 'custom' : undefined,
     };
   }
 }
