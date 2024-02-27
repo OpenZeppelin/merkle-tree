@@ -5,10 +5,10 @@ import { MerkleTreeOptions } from './options';
 import { standardLeafHash } from './hashes';
 import { validateArgument } from './utils/errors';
 
-export type StandardMerkleTreeData<T extends any[]> = MerkleTreeData<T> & {
+export interface StandardMerkleTreeData<T extends any[]> extends MerkleTreeData<T> {
   format: 'standard-v1';
   leafEncoding: string[];
-};
+}
 
 export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
   protected constructor(
