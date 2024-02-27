@@ -18,7 +18,10 @@ fc.configureGlobal({ numRuns: process.env.CI ? 10000 : 100 });
 testProp('generates a valid tree', [leaves, options], (t, leaves, options) => {
   const tree = StandardMerkleTree.of(leaves, leafEncoding, options);
   tree.validate();
-  t.pass();
+
+  for (const [index, value] of tree.entries()) {
+    t.is(value, leaves[index]!);
+  }
 });
 
 testProp('generates valid single proofs for all leaves', [leavesAndIndex, options], (t, [leaves, index], options) => {

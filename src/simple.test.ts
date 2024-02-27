@@ -16,7 +16,10 @@ fc.configureGlobal({ numRuns: process.env.CI ? 10000 : 100 });
 testProp('generates a valid tree', [leaves, options], (t, leaves, options) => {
   const tree = SimpleMerkleTree.of(leaves, options);
   tree.validate();
-  t.pass();
+
+  for (const [index, value] of tree.entries()) {
+    t.is(value, leaves[index]!);
+  }
 });
 
 testProp(
