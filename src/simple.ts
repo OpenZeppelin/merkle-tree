@@ -5,7 +5,7 @@ import { MerkleTreeData, MerkleTreeImpl } from './merkletree';
 import { MerkleTreeOptions } from './options';
 import { validateArgument } from './utils/errors';
 
-export type SimpleMerkleTreeData = MerkleTreeData<BytesLike> & {
+export type SimpleMerkleTreeData = MerkleTreeData<HexString> & {
   format: 'simple-v1';
 };
 
@@ -36,7 +36,7 @@ export class SimpleMerkleTree extends MerkleTreeImpl<BytesLike> {
     return {
       format: 'simple-v1',
       tree: this.tree,
-      values: this.values,
+      values: this.values.map(({ value, treeIndex }) => ({ value: toHex(value), treeIndex })),
     };
   }
 }

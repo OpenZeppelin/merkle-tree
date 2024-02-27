@@ -40,10 +40,10 @@ export function getProof(tree: BytesLike[], index: number): HexString[] {
 
   const proof = [];
   while (index > 0) {
-    proof.push(tree[siblingIndex(index)]!);
+    proof.push(toHex(tree[siblingIndex(index)]!));
     index = parentIndex(index);
   }
-  return proof.map(node => toHex(node));
+  return proof;
 }
 
 export function processProof(leaf: BytesLike, proof: BytesLike[]): HexString {
@@ -63,7 +63,7 @@ export function getMultiProof(tree: BytesLike[], indices: number[]): MultiProof<
   indices.forEach(i => checkLeafNode(tree, i));
   indices.sort((a, b) => b - a);
 
-  validateArgument(!indices.slice(1).some((i, p) => i === indices[p]), 'Cannot prove duplicated index');
+  validateArgument(indices.slice(1).every((i, p) => i !== indices[p]), 'Cannot prove duplicated index');
 
   const stack = indices.concat(); // copy
   const proof = [];
@@ -79,18 +79,18 @@ export function getMultiProof(tree: BytesLike[], indices: number[]): MultiProof<
       stack.shift(); // consume from the stack
     } else {
       proofFlags.push(false);
-      proof.push(tree[s]!);
+      proof.push(toHex(tree[s]!));
     }
     stack.push(p);
   }
 
   if (indices.length === 0) {
-    proof.push(tree[0]!);
+    proof.push(toHex(tree[0]!));
   }
 
   return {
-    leaves: indices.map(i => tree[i]!).map(node => toHex(node)),
-    proof: proof.map(node => toHex(node)),
+    leaves: indices.map(i => toHex(tree[i]!)),
+    proof,
     proofFlags,
   };
 }
@@ -136,7 +136,7 @@ export function isValidMerkleTree(tree: BytesLike[]): boolean {
       if (l < tree.length) {
         return false;
       }
-    } else if (node !== hashPair(tree[l]!, tree[r]!)) {
+    } else if (compare(node, hashPair(tree[l]!, tree[r]!))) {
       return false;
     }
   }
