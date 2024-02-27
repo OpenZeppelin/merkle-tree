@@ -41,7 +41,7 @@ export function getProof(tree: BytesLike[], index: number): HexString[] {
     proof.push(toHex(tree[siblingIndex(index)]!));
     index = parentIndex(index);
   }
-  return proof.map(node => toHex(node));
+  return proof;
 }
 
 export function processProof(leaf: BytesLike, proof: BytesLike[], nodeHash?: NodeHash): HexString {
