@@ -5,9 +5,9 @@ import { MerkleTreeData, MerkleTreeImpl } from './merkletree';
 import { MerkleTreeOptions } from './options';
 import { validateArgument } from './utils/errors';
 
-export type SimpleMerkleTreeData = MerkleTreeData<HexString> & {
+export interface SimpleMerkleTreeData extends MerkleTreeData<HexString> {
   format: 'simple-v1';
-};
+}
 
 export function formatLeaf(value: BytesLike): HexString {
   return defaultAbiCoder.encode(['bytes32'], [value]);

@@ -6,10 +6,10 @@ import { MerkleTreeData, MerkleTreeImpl } from './merkletree';
 import { MerkleTreeOptions } from './options';
 import { validateArgument } from './utils/errors';
 
-export type StandardMerkleTreeData<T extends any[]> = MerkleTreeData<T> & {
+export interface StandardMerkleTreeData<T extends any[]> extends MerkleTreeData<T> {
   format: 'standard-v1';
   leafEncoding: string[];
-};
+}
 
 export function standardLeafHash<T extends any[]>(types: string[], value: T): HexString {
   return keccak256(keccak256(defaultAbiCoder.encode(types, value)));
