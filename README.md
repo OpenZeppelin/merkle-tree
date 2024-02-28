@@ -296,7 +296,7 @@ The multiproof returned contains an array with the leaves that are being proven.
 Also accepts values instead of indices, but this will be less efficient. It will fail if any of the values is not found in the tree.
 
 ```typescript
-const proof = tree.getProof([value1, value2]); // e.g. [[alice, '100'], [bob, '200']]
+const proof = tree.getMultiProof([value1, value2]); // e.g. [[alice, '100'], [bob, '200']]
 ```
 
 ### `tree.verify`
