@@ -9,18 +9,18 @@ const leaves = fc.array(leaf, { minLength: 1 });
 const options = fc.record({ sortLeaves: fc.oneof(fc.constant(undefined), fc.boolean()) });
 
 const tree = fc.tuple(leaves, options).map(([leaves, options]) => SimpleMerkleTree.of(leaves, options));
-const treeAndLeaf = fc.tuple(leaves, options).chain(([leaves, options]) =>
+const treeAndLeaf = tree.chain(tree =>
   fc.tuple(
-    fc.constant(SimpleMerkleTree.of(leaves, options)),
-    fc.nat({ max: leaves.length - 1 }).map(index => ({ value: leaves[index]!, index })),
+    fc.constant(tree),
+    fc.nat({ max: tree.length - 1 }).map(index => ({ value: tree.at(index)!, index })),
   ),
 );
-const treeAndLeaves = fc.tuple(leaves, options).chain(([leaves, options]) =>
+const treeAndLeaves = tree.chain(tree =>
   fc.tuple(
-    fc.constant(SimpleMerkleTree.of(leaves, options)),
+    fc.constant(tree),
     fc
-      .uniqueArray(fc.nat({ max: leaves.length - 1 }))
-      .map(indices => indices.map(index => ({ value: leaves[index]!, index }))),
+      .uniqueArray(fc.nat({ max: tree.length - 1 }))
+      .map(indices => indices.map(index => ({ value: tree.at(index)!, index }))),
   ),
 );
 
