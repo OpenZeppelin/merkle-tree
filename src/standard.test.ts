@@ -91,7 +91,6 @@ testProp('dump and load', [tree], (t, tree) => {
   t.is(tree.render(), recoveredTree.render());
   t.deepEqual(tree.entries(), recoveredTree.entries());
   t.deepEqual(tree.dump(), recoveredTree.dump());
-  // t.deepEqual(tree, recoveredTree);
 });
 
 testProp('reject out of bounds value index', [tree], (t, tree) => {
