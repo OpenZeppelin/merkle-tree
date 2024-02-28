@@ -16,7 +16,7 @@ const checkLeafNode = (tree: unknown[], i: number) => void (isLeafNode(tree, i) 
 const checkValidMerkleNode = (node: BytesLike) =>
   void (isValidMerkleNode(node) || throwError('Merkle tree nodes must be Uint8Array of length 32'));
 
-export function makeMerkleTree(leaves: BytesLike[], nodeHash?: NodeHash): HexString[] {
+export function makeMerkleTree(leaves: BytesLike[], nodeHash: NodeHash = standardNodeHash): HexString[] {
   leaves.forEach(checkValidMerkleNode);
 
   validateArgument(leaves.length !== 0, 'Expected non-zero number of leaves');
@@ -27,7 +27,7 @@ export function makeMerkleTree(leaves: BytesLike[], nodeHash?: NodeHash): HexStr
     tree[tree.length - 1 - i] = toHex(leaf);
   }
   for (let i = tree.length - 1 - leaves.length; i >= 0; i--) {
-    tree[i] = (nodeHash ?? standardNodeHash)(tree[leftChildIndex(i)]!, tree[rightChildIndex(i)]!);
+    tree[i] = nodeHash(tree[leftChildIndex(i)]!, tree[rightChildIndex(i)]!);
   }
 
   return tree;
@@ -44,11 +44,11 @@ export function getProof(tree: BytesLike[], index: number): HexString[] {
   return proof;
 }
 
-export function processProof(leaf: BytesLike, proof: BytesLike[], nodeHash?: NodeHash): HexString {
+export function processProof(leaf: BytesLike, proof: BytesLike[], nodeHash: NodeHash = standardNodeHash): HexString {
   checkValidMerkleNode(leaf);
   proof.forEach(checkValidMerkleNode);
 
-  return toHex(proof.reduce(nodeHash ?? standardNodeHash, leaf));
+  return toHex(proof.reduce(nodeHash, leaf));
 }
 
 export interface MultiProof<T, L = T> {
@@ -96,7 +96,7 @@ export function getMultiProof(tree: BytesLike[], indices: number[]): MultiProof<
   };
 }
 
-export function processMultiProof(multiproof: MultiProof<BytesLike>, nodeHash?: NodeHash): HexString {
+export function processMultiProof(multiproof: MultiProof<BytesLike>, nodeHash: NodeHash = standardNodeHash): HexString {
   multiproof.leaves.forEach(checkValidMerkleNode);
   multiproof.proof.forEach(checkValidMerkleNode);
 
@@ -116,7 +116,7 @@ export function processMultiProof(multiproof: MultiProof<BytesLike>, nodeHash?: 
     const a = stack.shift();
     const b = flag ? stack.shift() : proof.shift();
     invariant(a !== undefined && b !== undefined);
-    stack.push((nodeHash ?? standardNodeHash)(a, b));
+    stack.push(nodeHash(a, b));
   }
 
   invariant(stack.length + proof.length === 1);
@@ -124,7 +124,7 @@ export function processMultiProof(multiproof: MultiProof<BytesLike>, nodeHash?: 
   return toHex(stack.pop() ?? proof.shift()!);
 }
 
-export function isValidMerkleTree(tree: BytesLike[], nodeHash?: NodeHash): boolean {
+export function isValidMerkleTree(tree: BytesLike[], nodeHash: NodeHash = standardNodeHash): boolean {
   for (const [i, node] of tree.entries()) {
     if (!isValidMerkleNode(node)) {
       return false;
@@ -137,7 +137,7 @@ export function isValidMerkleTree(tree: BytesLike[], nodeHash?: NodeHash): boole
       if (l < tree.length) {
         return false;
       }
-    } else if (compare(node, (nodeHash ?? standardNodeHash)(tree[l]!, tree[r]!))) {
+    } else if (compare(node, nodeHash(tree[l]!, tree[r]!))) {
       return false;
     }
   }

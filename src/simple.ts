@@ -11,12 +11,16 @@ export interface SimpleMerkleTreeData extends MerkleTreeData<HexString> {
   hash?: 'custom';
 }
 
+export interface SimpleMerkleTreeOptions extends MerkleTreeOptions {
+  nodeHash?: NodeHash;
+}
+
 export function formatLeaf(value: BytesLike): HexString {
   return defaultAbiCoder.encode(['bytes32'], [value]);
 }
 
 export class SimpleMerkleTree extends MerkleTreeImpl<BytesLike> {
-  static of(values: BytesLike[], options: MerkleTreeOptions & { nodeHash?: NodeHash } = {}): SimpleMerkleTree {
+  static of(values: BytesLike[], options: SimpleMerkleTreeOptions = {}): SimpleMerkleTree {
     const [tree, indexedValues] = MerkleTreeImpl.prepare(values, options, formatLeaf, options.nodeHash);
     return new SimpleMerkleTree(tree, indexedValues, formatLeaf, options.nodeHash);
   }
