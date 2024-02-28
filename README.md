@@ -129,7 +129,6 @@ Users of tooling that produced trees without double leaf hashing can use this fe
 
 ```typescript
 import { SimpleMerkleTree } from '@openzeppelin/merkle-tree';
-import fs from 'fs';
 import keccak256 from '@ethersproject/keccak256';
 
 // (1)
