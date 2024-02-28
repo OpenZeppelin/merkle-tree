@@ -249,17 +249,19 @@ const isValid = SimpleMerkleTree.verifyMultiProof(root, multiproof);
 
 Same as `StandardMerkleTree.verifyMultiProof`.
 
-### Options
+### Shared API
 
-Configuration options are the same for both `StandardMerkleTree` and `SimpleMerkleTree`.
+Both `StandardMerkleTree` and `SimpleMerkleTree` share the same API, defined below.
+
+#### Options
+
+Allows to configure the behavior of the tree. The following options are available:
 
 | Option       | Description                                                                       | Default |
 | ------------ | --------------------------------------------------------------------------------- | ------- |
 | `sortLeaves` | Enable or disable sorted leaves. Sorting is strongly recommended for multiproofs. | `true`  |
 
-Both `StandardMerkleTree` and `SimpleMerkleTree` share the same API, defined below.
-
-### `tree.root`
+#### `tree.root`
 
 ```typescript
 console.log(tree.root);
@@ -267,7 +269,7 @@ console.log(tree.root);
 
 The root of the tree is a commitment on the values of the tree. It can be published (e.g., in a smart contract) to later prove that its values are part of the tree.
 
-### `tree.dump`
+#### `tree.dump`
 
 ```typescript
 fs.writeFileSync('tree.json', JSON.stringify(tree.dump()));
@@ -275,7 +277,7 @@ fs.writeFileSync('tree.json', JSON.stringify(tree.dump()));
 
 Returns a description of the merkle tree for distribution. It contains all the necessary information to reproduce the tree, find the relevant leaves, and generate proofs. You should distribute this to users in a web application or command line interface so they can generate proofs for their leaves of interest.
 
-### `tree.getProof`
+#### `tree.getProof`
 
 ```typescript
 const proof = tree.getProof(i);
@@ -289,7 +291,7 @@ Also accepts a value instead of an index, but this will be less efficient. It wi
 const proof = tree.getProof(value); // e.g. [alice, '100']
 ```
 
-### `tree.getMultiProof`
+#### `tree.getMultiProof`
 
 ```typescript
 const { proof, proofFlags, leaves } = tree.getMultiProof([i0, i1, ...]);
@@ -305,7 +307,7 @@ Also accepts values instead of indices, but this will be less efficient. It will
 const proof = tree.getMultiProof([value1, value2]); // e.g. [[alice, '100'], [bob, '200']]
 ```
 
-### `tree.verify`
+#### `tree.verify`
 
 ```typescript
 tree.verify(i, proof);
@@ -314,7 +316,7 @@ tree.verify(value, proof); // e.g. [alice, '100']
 
 Returns a boolean that is `true` when the proof verifies that the value is contained in the tree.
 
-### `tree.verifyMultiProof`
+#### `tree.verifyMultiProof`
 
 ```typescript
 tree.verifyMultiProof({ proof, proofFlags, leaves });
@@ -322,7 +324,7 @@ tree.verifyMultiProof({ proof, proofFlags, leaves });
 
 Returns a boolean that is `true` when the multi-proof verifies that the values are contained in the tree.
 
-### `tree.entries`
+#### `tree.entries`
 
 ```typescript
 for (const [i, v] of tree.entries()) {
@@ -333,7 +335,7 @@ for (const [i, v] of tree.entries()) {
 
 Lists the values in the tree along with their indices, which can be used to obtain proofs.
 
-### `tree.render`
+#### `tree.render`
 
 ```typescript
 console.log(tree.render());
@@ -341,7 +343,7 @@ console.log(tree.render());
 
 Returns a visual representation of the tree that can be useful for debugging.
 
-### `tree.leafHash`
+#### `tree.leafHash`
 
 ```typescript
 const leaf = tree.leafHash(value); // e.g. [alice, '100']
