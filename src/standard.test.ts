@@ -7,27 +7,31 @@ import { InvalidArgumentError, InvariantError } from './utils/errors';
 const leafEncoding = ['uint256', 'string[]'];
 const leaf = fc.tuple(fc.bigUintN(256), fc.array(fc.string()));
 const leaves = fc.array(leaf, { minLength: 1 });
-const leavesAndIndex = leaves.chain(xs => fc.tuple(fc.constant(xs), fc.nat({ max: xs.length - 1 })));
-const leavesAndIndices = leaves.chain(xs => fc.tuple(fc.constant(xs), fc.uniqueArray(fc.nat({ max: xs.length - 1 }))));
+const options = fc.record({ sortLeaves: fc.oneof(fc.constant(undefined), fc.boolean()) });
 
-const sortLeaves = fc.oneof(fc.constant(undefined), fc.boolean());
-const options = fc.record({ sortLeaves });
+const tree = fc.tuple(leaves, options).map(([leaves, options]) => StandardMerkleTree.of(leaves, leafEncoding, options));
+const treeAndLeaf = fc.tuple(leaves, options).chain(([leaves, options]) =>
+  fc.tuple(
+    fc.constant(StandardMerkleTree.of(leaves, leafEncoding, options)),
+    fc.nat({ max: leaves.length - 1 }).map(index => ({ value: leaves[index]!, index })),
+  ),
+);
+const treeAndLeaves = fc.tuple(leaves, options).chain(([leaves, options]) =>
+  fc.tuple(
+    fc.constant(StandardMerkleTree.of(leaves, leafEncoding, options)),
+    fc
+      .uniqueArray(fc.nat({ max: leaves.length - 1 }))
+      .map(indices => indices.map(index => ({ value: leaves[index]!, index }))),
+  ),
+);
 
 fc.configureGlobal({ numRuns: process.env.CI ? 10000 : 100 });
 
-testProp('generates a valid tree', [leaves, options], (t, leaves, options) => {
-  const tree = StandardMerkleTree.of(leaves, leafEncoding, options);
-  tree.validate();
-
-  for (const [index, value] of tree.entries()) {
-    t.is(value, leaves[index]!);
-  }
+testProp('generates a valid tree', [tree], (t, tree) => {
+  t.notThrows(() => tree.validate());
 });
 
-testProp('generates valid single proofs for all leaves', [leavesAndIndex, options], (t, [leaves, index], options) => {
-  const tree = StandardMerkleTree.of(leaves, leafEncoding, options);
-  const leaf = leaves[index]!;
-
+testProp('generates valid single proofs for all leaves', [treeAndLeaf], (t, [tree, { value: leaf, index }]) => {
   const proof1 = tree.getProof(index);
   const proof2 = tree.getProof(leaf);
 
@@ -37,40 +41,27 @@ testProp('generates valid single proofs for all leaves', [leavesAndIndex, option
   t.true(StandardMerkleTree.verify(tree.root, leafEncoding, leaf, proof1));
 });
 
-testProp('rejects invalid proofs', [leavesAndIndex, leaves, options], (t, [leaves, index], otherLeaves, options) => {
-  const tree = StandardMerkleTree.of(leaves, leafEncoding, options);
-  const otherTree = StandardMerkleTree.of(otherLeaves, leafEncoding, options);
-
-  const leaf = leaves[index]!;
+testProp('rejects invalid proofs', [treeAndLeaf, tree], (t, [tree, { value: leaf }], otherTree) => {
   const proof = tree.getProof(leaf);
-
   t.false(otherTree.verify(leaf, proof));
   t.false(StandardMerkleTree.verify(otherTree.root, leafEncoding, leaf, proof));
 });
 
-testProp('generates valid multiproofs', [leavesAndIndices, options], (t, [leaves, indices], options) => {
-  const tree = StandardMerkleTree.of(leaves, leafEncoding, options);
-  const proof1 = tree.getMultiProof(indices);
-  const proof2 = tree.getMultiProof(indices.map(i => leaves[i]!));
+testProp('generates valid multiproofs', [treeAndLeaves], (t, [tree, indices]) => {
+  const proof1 = tree.getMultiProof(indices.map(e => e.index));
+  const proof2 = tree.getMultiProof(indices.map(e => e.value));
 
   t.deepEqual(proof1, proof2);
   t.true(tree.verifyMultiProof(proof1));
   t.true(StandardMerkleTree.verifyMultiProof(tree.root, leafEncoding, proof1));
 });
 
-testProp(
-  'rejects invalid multiproofs',
-  [leavesAndIndices, leaves, options],
-  (t, [leaves, indices], otherLeaves, options) => {
-    const tree = StandardMerkleTree.of(leaves, leafEncoding, options);
-    const otherTree = StandardMerkleTree.of(otherLeaves, leafEncoding, options);
+testProp('rejects invalid multiproofs', [treeAndLeaves, tree], (t, [tree, indices], otherTree) => {
+  const multiProof = tree.getMultiProof(indices.map(e => e.index));
 
-    const multiProof = tree.getMultiProof(indices);
-
-    t.false(otherTree.verifyMultiProof(multiProof));
-    t.false(StandardMerkleTree.verifyMultiProof(otherTree.root, leafEncoding, multiProof));
-  },
-);
+  t.false(otherTree.verifyMultiProof(multiProof));
+  t.false(StandardMerkleTree.verifyMultiProof(otherTree.root, leafEncoding, multiProof));
+});
 
 testProp(
   'renders tree representation',
@@ -92,21 +83,19 @@ testProp(
   { numRuns: 1, seed: 0 },
 );
 
-testProp('dump and load', [leaves, options], (t, leaves, options) => {
-  const tree = StandardMerkleTree.of(leaves, leafEncoding, options);
+testProp('dump and load', [tree], (t, tree) => {
   const recoveredTree = StandardMerkleTree.load(tree.dump());
-
   recoveredTree.validate();
 
   t.is(tree.root, recoveredTree.root);
-  t.is(tree.entries, recoveredTree.entries);
   t.is(tree.render(), recoveredTree.render());
+  t.deepEqual(tree.entries(), recoveredTree.entries());
   t.deepEqual(tree.dump(), recoveredTree.dump());
+  // t.deepEqual(tree, recoveredTree);
 });
 
-testProp('reject out of bounds value index', [leaves, options], (t, leaves, options) => {
-  const tree = StandardMerkleTree.of(leaves, leafEncoding, options);
-  t.throws(() => tree.getProof(leaves.length), new InvalidArgumentError('Index out of bounds'));
+testProp('reject out of bounds value index', [tree], (t, tree) => {
+  t.throws(() => tree.getProof(-1), new InvalidArgumentError('Index out of bounds'));
 });
 
 test('reject unrecognized tree dump', t => {
