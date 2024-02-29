@@ -117,7 +117,7 @@ testProp('dump and load', [tree], (t, [tree, options]) => {
   const recoveredTree = SimpleMerkleTree.load(dump, options.nodeHash);
   recoveredTree.validate();
 
-  t.is(dump.hash === undefined, options.nodeHash === undefined);
+  t.is(dump.hash, options.nodeHash ? 'custom' : undefined);
   t.is(tree.root, recoveredTree.root);
   t.is(tree.render(), recoveredTree.render());
   t.deepEqual(tree.entries(), recoveredTree.entries());
