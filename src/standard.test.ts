@@ -29,6 +29,12 @@ fc.configureGlobal({ numRuns: process.env.CI ? 10000 : 100 });
 
 testProp('generates a valid tree', [tree], (t, tree) => {
   t.notThrows(() => tree.validate());
+
+  // check leaves enumeration
+  for (const [ index, value ] of tree.entries()) {
+    t.is(value, tree.at(index)!);
+  }
+  t.is(tree.at(tree.length), undefined);
 });
 
 testProp('generates valid single proofs for all leaves', [treeAndLeaf], (t, [tree, { value: leaf, index }]) => {
@@ -84,12 +90,17 @@ testProp(
 );
 
 testProp('dump and load', [tree], (t, tree) => {
-  const recoveredTree = StandardMerkleTree.load(tree.dump());
+  const dump = tree.dump();
+  const recoveredTree = StandardMerkleTree.load(dump);
   recoveredTree.validate();
 
+  // check dump & reconstructed tree
+  t.is(dump.format, 'standard-v1');
+  t.true(dump.values.every(({ value }, index) => value === tree.at(index)!));
+  t.true(dump.values.every(({ value }, index) => value === recoveredTree.at(index)!));
   t.is(tree.root, recoveredTree.root);
+  t.is(tree.length, recoveredTree.length);
   t.is(tree.render(), recoveredTree.render());
-  t.deepEqual(tree.entries(), recoveredTree.entries());
   t.deepEqual(tree.dump(), recoveredTree.dump());
 });
 

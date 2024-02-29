@@ -4,7 +4,7 @@ import { SimpleMerkleTree } from './simple';
 import { toHex } from './bytes';
 import { InvalidArgumentError, InvariantError } from './utils/errors';
 
-const leaf = fc.uint8Array({ minLength: 32, maxLength: 32 }).map(toHex);
+const leaf = fc.uint8Array({ minLength: 32, maxLength: 32 });
 const leaves = fc.array(leaf, { minLength: 1 });
 const options = fc.record({ sortLeaves: fc.oneof(fc.constant(undefined), fc.boolean()) });
 
@@ -28,6 +28,12 @@ fc.configureGlobal({ numRuns: process.env.CI ? 10000 : 100 });
 
 testProp('generates a valid tree', [tree], (t, tree) => {
   t.notThrows(() => tree.validate());
+
+  // check leaves enumeration
+  for (const [ index, value ] of tree.entries()) {
+    t.is(value, tree.at(index)!);
+  }
+  t.is(tree.at(tree.length), undefined);
 });
 
 testProp('generates valid single proofs for all leaves', [treeAndLeaf], (t, [tree, { value: leaf, index }]) => {
@@ -83,12 +89,17 @@ testProp(
 );
 
 testProp('dump and load', [tree], (t, tree) => {
-  const recoveredTree = SimpleMerkleTree.load(tree.dump());
+  const dump = tree.dump();
+  const recoveredTree = SimpleMerkleTree.load(dump);
   recoveredTree.validate();
 
+  // check dump & reconstructed tree
+  t.is(dump.format, 'simple-v1');
+  t.true(dump.values.every(({ value }, index) => value === toHex(tree.at(index)!)));
+  t.true(dump.values.every(({ value }, index) => value === toHex(recoveredTree.at(index)!)));
   t.is(tree.root, recoveredTree.root);
+  t.is(tree.length, recoveredTree.length);
   t.is(tree.render(), recoveredTree.render());
-  t.deepEqual(tree.entries(), recoveredTree.entries());
   t.deepEqual(tree.dump(), recoveredTree.dump());
 });
 
