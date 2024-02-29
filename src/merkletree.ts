@@ -55,7 +55,11 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
     leafHash: MerkleTree<T>['leafHash'],
   ): [tree: HexString[], indexedValues: MerkleTreeData<T>['values']] {
     const sortLeaves = options.sortLeaves ?? defaultOptions.sortLeaves;
-    const hashedValues = values.map((value, valueIndex) => ({ value, valueIndex, hash: leafHash(value) }));
+    const hashedValues = values.map((value, valueIndex) => ({
+      value,
+      valueIndex,
+      hash: leafHash(value),
+    }));
 
     if (sortLeaves) {
       hashedValues.sort((a, b) => compare(a.hash, b.hash));
@@ -117,7 +121,9 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
   getMultiProof(leaves: (number | T)[]): MultiProof<HexString, T> {
     // input validity
     const valueIndices = leaves.map(leaf => (typeof leaf === 'number' ? leaf : this.leafLookup(leaf)));
-    for (const valueIndex of valueIndices) this._validateValueAt(valueIndex);
+    for (const valueIndex of valueIndices) {
+      this._validateValueAt(valueIndex);
+    }
 
     // rebuild tree indices and generate proof
     const indices = valueIndices.map(i => this.values[i]!.treeIndex);
