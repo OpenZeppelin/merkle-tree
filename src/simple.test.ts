@@ -16,12 +16,9 @@ const options = fc.record({
   nodeHash: fc.oneof(fc.constant(undefined), fc.constant(reverseHashPair)),
 });
 
-const tree = fc.tuple(leaves, options).chain(([leaves, options]) =>
-  fc.tuple(
-    fc.constant(SimpleMerkleTree.of(leaves, options)),
-    fc.constant(options),
-  )
-);
+const tree = fc
+  .tuple(leaves, options)
+  .chain(([leaves, options]) => fc.tuple(fc.constant(SimpleMerkleTree.of(leaves, options)), fc.constant(options)));
 const treeAndLeaf = fc.tuple(leaves, options).chain(([leaves, options]) =>
   fc.tuple(
     fc.constant(SimpleMerkleTree.of(leaves, options)),
@@ -41,26 +38,34 @@ const treeAndLeaves = fc.tuple(leaves, options).chain(([leaves, options]) =>
 
 fc.configureGlobal({ numRuns: process.env.CI ? 10000 : 100 });
 
-testProp('generates a valid tree', [tree], (t, [ tree ]) => {
+testProp('generates a valid tree', [tree], (t, [tree]) => {
   t.notThrows(() => tree.validate());
 });
 
-testProp('generates valid single proofs for all leaves', [treeAndLeaf], (t, [tree, options, { value: leaf, index }]) => {
-  const proof1 = tree.getProof(index);
-  const proof2 = tree.getProof(leaf);
+testProp(
+  'generates valid single proofs for all leaves',
+  [treeAndLeaf],
+  (t, [tree, options, { value: leaf, index }]) => {
+    const proof1 = tree.getProof(index);
+    const proof2 = tree.getProof(leaf);
 
-  t.deepEqual(proof1, proof2);
-  t.true(tree.verify(index, proof1));
-  t.true(tree.verify(leaf, proof1));
-  t.true(SimpleMerkleTree.verify(tree.root, leaf, proof1, options.nodeHash));
-});
+    t.deepEqual(proof1, proof2);
+    t.true(tree.verify(index, proof1));
+    t.true(tree.verify(leaf, proof1));
+    t.true(SimpleMerkleTree.verify(tree.root, leaf, proof1, options.nodeHash));
+  },
+);
 
-testProp('rejects invalid proofs', [treeAndLeaf, tree], (t, [tree, options, { value: leaf }], [otherTree, otherOptions ]) => {
-  const proof = tree.getProof(leaf);
-  t.false(otherTree.verify(leaf, proof));
-  t.false(SimpleMerkleTree.verify(otherTree.root, leaf, proof, options.nodeHash));
-  t.false(SimpleMerkleTree.verify(otherTree.root, leaf, proof, otherOptions.nodeHash));
-});
+testProp(
+  'rejects invalid proofs',
+  [treeAndLeaf, tree],
+  (t, [tree, options, { value: leaf }], [otherTree, otherOptions]) => {
+    const proof = tree.getProof(leaf);
+    t.false(otherTree.verify(leaf, proof));
+    t.false(SimpleMerkleTree.verify(otherTree.root, leaf, proof, options.nodeHash));
+    t.false(SimpleMerkleTree.verify(otherTree.root, leaf, proof, otherOptions.nodeHash));
+  },
+);
 
 testProp('generates valid multiproofs', [treeAndLeaves], (t, [tree, options, indices]) => {
   const proof1 = tree.getMultiProof(indices.map(e => e.index));
@@ -71,13 +76,17 @@ testProp('generates valid multiproofs', [treeAndLeaves], (t, [tree, options, ind
   t.true(SimpleMerkleTree.verifyMultiProof(tree.root, proof1, options.nodeHash));
 });
 
-testProp('rejects invalid multiproofs', [treeAndLeaves, tree], (t, [tree, options, indices], [ otherTree, otherOptions  ]) => {
-  const multiProof = tree.getMultiProof(indices.map(e => e.index));
+testProp(
+  'rejects invalid multiproofs',
+  [treeAndLeaves, tree],
+  (t, [tree, options, indices], [otherTree, otherOptions]) => {
+    const multiProof = tree.getMultiProof(indices.map(e => e.index));
 
-  t.false(otherTree.verifyMultiProof(multiProof));
-  t.false(SimpleMerkleTree.verifyMultiProof(otherTree.root, multiProof, options.nodeHash));
-  t.false(SimpleMerkleTree.verifyMultiProof(otherTree.root, multiProof, otherOptions.nodeHash));
-});
+    t.false(otherTree.verifyMultiProof(multiProof));
+    t.false(SimpleMerkleTree.verifyMultiProof(otherTree.root, multiProof, options.nodeHash));
+    t.false(SimpleMerkleTree.verifyMultiProof(otherTree.root, multiProof, otherOptions.nodeHash));
+  },
+);
 
 testProp(
   'renders tree representation',
