@@ -48,7 +48,7 @@ export class SimpleMerkleTree extends MerkleTreeImpl<BytesLike> {
       format: 'simple-v1',
       tree: this.tree,
       values: this.values.map(({ value, treeIndex }) => ({ value: toHex(value), treeIndex })),
-      hash: this.nodeHash ? 'custom' : undefined,
+      ...(this.nodeHash ? { hash: 'custom'} : {}),
     };
   }
 }
