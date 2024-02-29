@@ -1,9 +1,7 @@
-import assert from 'assert/strict';
+import test from 'ava';
 import { SimpleMerkleTree, StandardMerkleTree } from '.';
 
-describe('index properties', () => {
-  it('classes are exported', () => {
-    assert.notEqual(SimpleMerkleTree, undefined);
-    assert.notEqual(StandardMerkleTree, undefined);
-  });
+test('classes are exported', t => {
+  t.not(SimpleMerkleTree, undefined);
+  t.not(StandardMerkleTree, undefined);
 });
