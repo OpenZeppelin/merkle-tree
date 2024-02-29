@@ -4,7 +4,10 @@ import { SimpleMerkleTree } from './simple';
 import { toHex } from './bytes';
 import { InvalidArgumentError, InvariantError } from './utils/errors';
 
-const leaf = fc.uint8Array({ minLength: 32, maxLength: 32 });
+// Use a mix of uint8array and hexstring to cover the Byteslike space
+const leaf = fc
+  .uint8Array({ minLength: 32, maxLength: 32 })
+  .chain(l => fc.oneof(fc.constant(l), fc.constant(toHex(l))));
 const leaves = fc.array(leaf, { minLength: 1 });
 const options = fc.record({ sortLeaves: fc.oneof(fc.constant(undefined), fc.boolean()) });
 
@@ -30,7 +33,7 @@ testProp('generates a valid tree', [tree], (t, tree) => {
   t.notThrows(() => tree.validate());
 
   // check leaves enumeration
-  for (const [ index, value ] of tree.entries()) {
+  for (const [index, value] of tree.entries()) {
     t.is(value, tree.at(index)!);
   }
   t.is(tree.at(tree.length), undefined);

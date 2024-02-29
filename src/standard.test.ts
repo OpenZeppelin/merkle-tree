@@ -31,7 +31,7 @@ testProp('generates a valid tree', [tree], (t, tree) => {
   t.notThrows(() => tree.validate());
 
   // check leaves enumeration
-  for (const [ index, value ] of tree.entries()) {
+  for (const [index, value] of tree.entries()) {
     t.is(value, tree.at(index)!);
   }
   t.is(tree.at(tree.length), undefined);
