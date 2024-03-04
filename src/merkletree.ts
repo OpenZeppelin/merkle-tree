@@ -23,6 +23,8 @@ export interface MerkleTreeData<T> {
 
 export interface MerkleTree<T> {
   root: HexString;
+  length: number;
+  at(index: number): T | undefined;
   render(): string;
   dump(): MerkleTreeData<T>;
   entries(): Iterable<[number, T]>;
@@ -83,6 +85,14 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
 
   get root(): HexString {
     return this.tree[0]!;
+  }
+
+  get length(): number {
+    return this.values.length;
+  }
+
+  at(index: number): T | undefined {
+    return this.values.at(index)?.value;
   }
 
   abstract dump(): MerkleTreeData<T>;

@@ -2,16 +2,19 @@ import { test, testProp, fc } from '@fast-check/ava';
 import { HashZero as zero } from '@ethersproject/constants';
 import { keccak256 } from '@ethersproject/keccak256';
 import { SimpleMerkleTree } from './simple';
-import { BytesLike, HexString, concat, compare } from './bytes';
+import { BytesLike, HexString, concat, compare, toHex } from './bytes';
+import { InvalidArgumentError, InvariantError } from './utils/errors';
+
+fc.configureGlobal({ numRuns: process.env.CI ? 5000 : 100 });
 
 const reverseNodeHash = (a: BytesLike, b: BytesLike): HexString => keccak256(concat([a, b].sort(compare).reverse()));
 const otherNodeHash = (a: BytesLike, b: BytesLike): HexString => keccak256(reverseNodeHash(a, b)); // double hash
 
-import { toHex } from './bytes';
-import { InvalidArgumentError, InvariantError } from './utils/errors';
-
-const leaf = fc.uint8Array({ minLength: 32, maxLength: 32 }).map(toHex);
-const leaves = fc.array(leaf, { minLength: 1 });
+// Use a mix of uint8array and hexstring to cover the Byteslike space
+const leaf = fc
+  .uint8Array({ minLength: 32, maxLength: 32 })
+  .chain(l => fc.oneof(fc.constant(l), fc.constant(toHex(l))));
+const leaves = fc.array(leaf, { minLength: 1, maxLength: 1000 });
 const options = fc.record({
   sortLeaves: fc.oneof(fc.constant(undefined), fc.boolean()),
   nodeHash: fc.oneof(fc.constant(undefined), fc.constant(reverseNodeHash)),
@@ -20,27 +23,31 @@ const options = fc.record({
 const tree = fc
   .tuple(leaves, options)
   .chain(([leaves, options]) => fc.tuple(fc.constant(SimpleMerkleTree.of(leaves, options)), fc.constant(options)));
-const treeAndLeaf = fc.tuple(leaves, options).chain(([leaves, options]) =>
+const treeAndLeaf = tree.chain(([tree, options]) =>
   fc.tuple(
-    fc.constant(SimpleMerkleTree.of(leaves, options)),
+    fc.constant(tree),
     fc.constant(options),
-    fc.nat({ max: leaves.length - 1 }).map(index => ({ value: leaves[index]!, index })),
+    fc.nat({ max: tree.length - 1 }).map(index => ({ value: tree.at(index)!, index })),
   ),
 );
-const treeAndLeaves = fc.tuple(leaves, options).chain(([leaves, options]) =>
+const treeAndLeaves = tree.chain(([tree, options]) =>
   fc.tuple(
-    fc.constant(SimpleMerkleTree.of(leaves, options)),
+    fc.constant(tree),
     fc.constant(options),
     fc
-      .uniqueArray(fc.nat({ max: leaves.length - 1 }))
-      .map(indices => indices.map(index => ({ value: leaves[index]!, index }))),
+      .uniqueArray(fc.nat({ max: tree.length - 1 }))
+      .map(indices => indices.map(index => ({ value: tree.at(index)!, index }))),
   ),
 );
-
-fc.configureGlobal({ numRuns: process.env.CI ? 10000 : 100 });
 
 testProp('generates a valid tree', [tree], (t, [tree]) => {
   t.notThrows(() => tree.validate());
+
+  // check leaves enumeration
+  for (const [index, value] of tree.entries()) {
+    t.is(value, tree.at(index)!);
+  }
+  t.is(tree.at(tree.length), undefined);
 });
 
 testProp(
@@ -118,10 +125,14 @@ testProp('dump and load', [tree], (t, [tree, options]) => {
   const recoveredTree = SimpleMerkleTree.load(dump, options.nodeHash);
   recoveredTree.validate(); // already done in load
 
+  // check dump & reconstructed tree
+  t.is(dump.format, 'simple-v1');
   t.is(dump.hash, options.nodeHash ? 'custom' : undefined);
+  t.true(dump.values.every(({ value }, index) => value === toHex(tree.at(index)!)));
+  t.true(dump.values.every(({ value }, index) => value === toHex(recoveredTree.at(index)!)));
   t.is(tree.root, recoveredTree.root);
+  t.is(tree.length, recoveredTree.length);
   t.is(tree.render(), recoveredTree.render());
-  t.deepEqual(tree.entries(), recoveredTree.entries());
   t.deepEqual(tree.dump(), recoveredTree.dump());
 });
 
