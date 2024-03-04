@@ -4,30 +4,36 @@ import { keccak256 } from '@ethersproject/keccak256';
 import { StandardMerkleTree } from './standard';
 import { InvalidArgumentError, InvariantError } from './utils/errors';
 
+fc.configureGlobal({ numRuns: process.env.CI ? 10000 : 100 });
+
 const leafEncoding = ['uint256', 'string[]'];
 const leaf = fc.tuple(fc.bigUintN(256), fc.array(fc.string()));
 const leaves = fc.array(leaf, { minLength: 1 });
 const options = fc.record({ sortLeaves: fc.oneof(fc.constant(undefined), fc.boolean()) });
 
-const tree = fc.tuple(leaves, options).map(([leaves, options]) => StandardMerkleTree.of(leaves, leafEncoding, options));
-const treeAndLeaf = tree.chain(tree =>
+const tree = fc
+  .tuple(leaves, options)
+  .chain(([leaves, options]) =>
+    fc.tuple(fc.constant(StandardMerkleTree.of(leaves, leafEncoding, options)), fc.constant(options)),
+  );
+const treeAndLeaf = tree.chain(([tree, options]) =>
   fc.tuple(
     fc.constant(tree),
+    fc.constant(options),
     fc.nat({ max: tree.length - 1 }).map(index => ({ value: tree.at(index)!, index })),
   ),
 );
-const treeAndLeaves = tree.chain(tree =>
+const treeAndLeaves = tree.chain(([tree, options]) =>
   fc.tuple(
     fc.constant(tree),
+    fc.constant(options),
     fc
       .uniqueArray(fc.nat({ max: tree.length - 1 }))
       .map(indices => indices.map(index => ({ value: tree.at(index)!, index }))),
   ),
 );
 
-fc.configureGlobal({ numRuns: process.env.CI ? 10000 : 100 });
-
-testProp('generates a valid tree', [tree], (t, tree) => {
+testProp('generates a valid tree', [tree], (t, [tree]) => {
   t.notThrows(() => tree.validate());
 
   // check leaves enumeration
@@ -37,7 +43,7 @@ testProp('generates a valid tree', [tree], (t, tree) => {
   t.is(tree.at(tree.length), undefined);
 });
 
-testProp('generates valid single proofs for all leaves', [treeAndLeaf], (t, [tree, { value: leaf, index }]) => {
+testProp('generates valid single proofs for all leaves', [treeAndLeaf], (t, [tree, , { value: leaf, index }]) => {
   const proof1 = tree.getProof(index);
   const proof2 = tree.getProof(leaf);
 
@@ -47,13 +53,13 @@ testProp('generates valid single proofs for all leaves', [treeAndLeaf], (t, [tre
   t.true(StandardMerkleTree.verify(tree.root, leafEncoding, leaf, proof1));
 });
 
-testProp('rejects invalid proofs', [treeAndLeaf, tree], (t, [tree, { value: leaf }], otherTree) => {
+testProp('rejects invalid proofs', [treeAndLeaf, tree], (t, [tree, , { value: leaf }], [otherTree]) => {
   const proof = tree.getProof(leaf);
   t.false(otherTree.verify(leaf, proof));
   t.false(StandardMerkleTree.verify(otherTree.root, leafEncoding, leaf, proof));
 });
 
-testProp('generates valid multiproofs', [treeAndLeaves], (t, [tree, indices]) => {
+testProp('generates valid multiproofs', [treeAndLeaves], (t, [tree, , indices]) => {
   const proof1 = tree.getMultiProof(indices.map(e => e.index));
   const proof2 = tree.getMultiProof(indices.map(e => e.value));
 
@@ -62,7 +68,7 @@ testProp('generates valid multiproofs', [treeAndLeaves], (t, [tree, indices]) =>
   t.true(StandardMerkleTree.verifyMultiProof(tree.root, leafEncoding, proof1));
 });
 
-testProp('rejects invalid multiproofs', [treeAndLeaves, tree], (t, [tree, indices], otherTree) => {
+testProp('rejects invalid multiproofs', [treeAndLeaves, tree], (t, [tree, , indices], [otherTree]) => {
   const multiProof = tree.getMultiProof(indices.map(e => e.index));
 
   t.false(otherTree.verifyMultiProof(multiProof));
@@ -89,7 +95,7 @@ testProp(
   { numRuns: 1, seed: 0 },
 );
 
-testProp('dump and load', [tree], (t, tree) => {
+testProp('dump and load', [tree], (t, [tree]) => {
   const dump = tree.dump();
   const recoveredTree = StandardMerkleTree.load(dump);
   recoveredTree.validate(); // already done in load
@@ -104,7 +110,7 @@ testProp('dump and load', [tree], (t, tree) => {
   t.deepEqual(tree.dump(), recoveredTree.dump());
 });
 
-testProp('reject out of bounds value index', [tree], (t, tree) => {
+testProp('reject out of bounds value index', [tree], (t, [tree]) => {
   t.throws(() => tree.getProof(-1), new InvalidArgumentError('Index out of bounds'));
 });
 

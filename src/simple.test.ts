@@ -2,13 +2,13 @@ import { test, testProp, fc } from '@fast-check/ava';
 import { HashZero as zero } from '@ethersproject/constants';
 import { keccak256 } from '@ethersproject/keccak256';
 import { SimpleMerkleTree } from './simple';
-import { BytesLike, HexString, concat, compare } from './bytes';
+import { BytesLike, HexString, concat, compare, toHex } from './bytes';
+import { InvalidArgumentError, InvariantError } from './utils/errors';
+
+fc.configureGlobal({ numRuns: process.env.CI ? 10000 : 100 });
 
 const reverseNodeHash = (a: BytesLike, b: BytesLike): HexString => keccak256(concat([a, b].sort(compare).reverse()));
 const otherNodeHash = (a: BytesLike, b: BytesLike): HexString => keccak256(reverseNodeHash(a, b)); // double hash
-
-import { toHex } from './bytes';
-import { InvalidArgumentError, InvariantError } from './utils/errors';
 
 // Use a mix of uint8array and hexstring to cover the Byteslike space
 const leaf = fc
@@ -39,8 +39,6 @@ const treeAndLeaves = tree.chain(([tree, options]) =>
       .map(indices => indices.map(index => ({ value: tree.at(index)!, index }))),
   ),
 );
-
-fc.configureGlobal({ numRuns: process.env.CI ? 10000 : 100 });
 
 testProp('generates a valid tree', [tree], (t, [tree]) => {
   t.notThrows(() => tree.validate());
