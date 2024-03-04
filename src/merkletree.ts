@@ -12,6 +12,7 @@ import {
 } from './core';
 
 import { MerkleTreeOptions, defaultOptions } from './options';
+import { LeafHash, NodeHash } from './hashes';
 import { validateArgument, invariant } from './utils/errors';
 
 export interface MerkleTreeData<T> {
@@ -42,7 +43,8 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
   protected constructor(
     protected readonly tree: HexString[],
     protected readonly values: MerkleTreeData<T>['values'],
-    public readonly leafHash: MerkleTree<T>['leafHash'],
+    public readonly leafHash: LeafHash<T>,
+    protected readonly nodeHash?: NodeHash,
   ) {
     validateArgument(
       values.every(({ value }) => typeof value != 'number'),
@@ -54,7 +56,8 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
   protected static prepare<T>(
     values: T[],
     options: MerkleTreeOptions = {},
-    leafHash: MerkleTree<T>['leafHash'],
+    leafHash: LeafHash<T>,
+    nodeHash?: NodeHash,
   ): [tree: HexString[], indexedValues: MerkleTreeData<T>['values']] {
     const sortLeaves = options.sortLeaves ?? defaultOptions.sortLeaves;
     const hashedValues = values.map((value, valueIndex) => ({
@@ -67,7 +70,10 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
       hashedValues.sort((a, b) => compare(a.hash, b.hash));
     }
 
-    const tree = makeMerkleTree(hashedValues.map(v => v.hash));
+    const tree = makeMerkleTree(
+      hashedValues.map(v => v.hash),
+      nodeHash,
+    );
 
     const indexedValues = values.map(value => ({ value, treeIndex: 0 }));
     for (const [leafIndex, { valueIndex }] of hashedValues.entries()) {
@@ -103,7 +109,7 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
 
   validate(): void {
     this.values.forEach((_, i) => this._validateValueAt(i));
-    invariant(isValidMerkleTree(this.tree), 'Merkle tree is invalid');
+    invariant(isValidMerkleTree(this.tree, this.nodeHash), 'Merkle tree is invalid');
   }
 
   leafLookup(leaf: T): number {
@@ -181,10 +187,10 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
   }
 
   private _verify(leafHash: BytesLike, proof: BytesLike[]): boolean {
-    return this.root === processProof(leafHash, proof);
+    return this.root === processProof(leafHash, proof, this.nodeHash);
   }
 
   private _verifyMultiProof(multiproof: MultiProof<BytesLike>): boolean {
-    return this.root === processMultiProof(multiproof);
+    return this.root === processMultiProof(multiproof, this.nodeHash);
   }
 }
