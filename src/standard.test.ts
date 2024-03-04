@@ -111,22 +111,24 @@ test('reject unrecognized tree dump', t => {
 
 test('reject malformed tree dump', t => {
   t.throws(
-    () => StandardMerkleTree.load({
-      format: 'standard-v1',
-      tree: [zero],
-      values: [{ value: ['0'], treeIndex: 0 }],
-      leafEncoding: ['uint256'],
-    }),
+    () =>
+      StandardMerkleTree.load({
+        format: 'standard-v1',
+        tree: [zero],
+        values: [{ value: ['0'], treeIndex: 0 }],
+        leafEncoding: ['uint256'],
+      }),
     new InvariantError('Merkle tree does not contain the expected value'),
   );
 
   t.throws(
-    () => StandardMerkleTree.load({
-      format: 'standard-v1',
-      tree: [zero, zero, keccak256(keccak256(zero))],
-      values: [{ value: ['0'], treeIndex: 2 }],
-      leafEncoding: ['uint256'],
-    }),
+    () =>
+      StandardMerkleTree.load({
+        format: 'standard-v1',
+        tree: [zero, zero, keccak256(keccak256(zero))],
+        values: [{ value: ['0'], treeIndex: 2 }],
+        leafEncoding: ['uint256'],
+      }),
     new InvariantError('Merkle tree is invalid'),
   );
 });

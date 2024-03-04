@@ -130,7 +130,7 @@ testProp('reject out of bounds value index', [tree], (t, [tree]) => {
 });
 
 // We need at least 2 leaves for internal node hashing to come into play
-testProp('reject loading dump with wrong node hash', [ fc.array(leaf, { minLength: 2 }) ] , (t, leaves) => {
+testProp('reject loading dump with wrong node hash', [fc.array(leaf, { minLength: 2 })], (t, leaves) => {
   const dump = SimpleMerkleTree.of(leaves, { nodeHash: reverseNodeHash }).dump();
   t.throws(() => SimpleMerkleTree.load(dump, otherNodeHash), new InvariantError('Merkle tree is invalid'));
 });
@@ -156,22 +156,27 @@ test('reject unrecognized tree dump', t => {
 
 test('reject malformed tree dump', t => {
   t.throws(
-    () => SimpleMerkleTree.load({
-      format: 'simple-v1',
-      tree: [zero],
-      values: [
-        {
-          value: '0x0000000000000000000000000000000000000000000000000000000000000001',
-          treeIndex: 0,
-        },
-      ],
-    }),
-    new InvariantError('Merkle tree does not contain the expected value')
+    () =>
+      SimpleMerkleTree.load({
+        format: 'simple-v1',
+        tree: [zero],
+        values: [
+          {
+            value: '0x0000000000000000000000000000000000000000000000000000000000000001',
+            treeIndex: 0,
+          },
+        ],
+      }),
+    new InvariantError('Merkle tree does not contain the expected value'),
   );
 
-  t.throws(() => SimpleMerkleTree.load({
-    format: 'simple-v1',
-    tree: [zero, zero, zero],
-    values: [{ value: zero, treeIndex: 2 }],
-  }), new InvariantError('Merkle tree is invalid'));
+  t.throws(
+    () =>
+      SimpleMerkleTree.load({
+        format: 'simple-v1',
+        tree: [zero, zero, zero],
+        values: [{ value: zero, treeIndex: 2 }],
+      }),
+    new InvariantError('Merkle tree is invalid'),
+  );
 });
