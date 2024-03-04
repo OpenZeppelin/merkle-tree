@@ -4,7 +4,7 @@
 
 - Added `SimpleMerkleTree` class that supports `bytes32` leaves with no extra hashing.
 - Support custom hashing function for computing internal nodes. Available in the core and in `SimpleMerkleTree`.
-- Add `at()` and `length` getter to access leaves in a tree.
+- Add `length` and `at()` (leaf getter) to `StandardMerkleTree` and `SimpleMerkleTree`.
 
 ## 1.0.6
 
