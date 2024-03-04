@@ -49,7 +49,6 @@ export abstract class MerkleTreeImpl<T> implements MerkleTree<T> {
       'Leaf values cannot be numbers',
     );
     this.hashLookup = Object.fromEntries(values.map(({ treeIndex }, valueIndex) => [tree[treeIndex], valueIndex]));
-    this.validate();
   }
 
   protected static prepare<T>(

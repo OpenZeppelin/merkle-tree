@@ -34,6 +34,7 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
     validateArgument(data.leafEncoding !== undefined, 'Expected leaf encoding');
 
     const tree = new StandardMerkleTree(data.tree, data.values, data.leafEncoding);
+    tree.validate();
     return tree;
   }
 

@@ -33,6 +33,7 @@ export class SimpleMerkleTree extends MerkleTreeImpl<BytesLike> {
     );
 
     const tree = new SimpleMerkleTree(data.tree, data.values, formatLeaf, nodeHash);
+    tree.validate();
     return tree;
   }
 
