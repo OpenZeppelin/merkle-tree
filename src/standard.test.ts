@@ -85,7 +85,7 @@ testProp(
 
 testProp('dump and load', [tree], (t, tree) => {
   const recoveredTree = StandardMerkleTree.load(tree.dump());
-  recoveredTree.validate();
+  recoveredTree.validate(); // already done in load
 
   t.is(tree.root, recoveredTree.root);
   t.is(tree.render(), recoveredTree.render());
@@ -110,19 +110,25 @@ test('reject unrecognized tree dump', t => {
 });
 
 test('reject malformed tree dump', t => {
-  const loadedTree1 = StandardMerkleTree.load({
-    format: 'standard-v1',
-    tree: [zero],
-    values: [{ value: ['0'], treeIndex: 0 }],
-    leafEncoding: ['uint256'],
-  });
-  t.throws(() => loadedTree1.getProof(0), new InvariantError('Merkle tree does not contain the expected value'));
+  t.throws(
+    () =>
+      StandardMerkleTree.load({
+        format: 'standard-v1',
+        tree: [zero],
+        values: [{ value: ['0'], treeIndex: 0 }],
+        leafEncoding: ['uint256'],
+      }),
+    new InvariantError('Merkle tree does not contain the expected value'),
+  );
 
-  const loadedTree2 = StandardMerkleTree.load({
-    format: 'standard-v1',
-    tree: [zero, zero, keccak256(keccak256(zero))],
-    values: [{ value: ['0'], treeIndex: 2 }],
-    leafEncoding: ['uint256'],
-  });
-  t.throws(() => loadedTree2.getProof(0), new InvariantError('Unable to prove value'));
+  t.throws(
+    () =>
+      StandardMerkleTree.load({
+        format: 'standard-v1',
+        tree: [zero, zero, keccak256(keccak256(zero))],
+        values: [{ value: ['0'], treeIndex: 2 }],
+        leafEncoding: ['uint256'],
+      }),
+    new InvariantError('Merkle tree is invalid'),
+  );
 });
