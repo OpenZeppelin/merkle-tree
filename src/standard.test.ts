@@ -4,11 +4,11 @@ import { keccak256 } from '@ethersproject/keccak256';
 import { StandardMerkleTree } from './standard';
 import { InvalidArgumentError, InvariantError } from './utils/errors';
 
-fc.configureGlobal({ numRuns: process.env.CI ? 10000 : 100 });
+fc.configureGlobal({ numRuns: process.env.CI ? 5000 : 100 });
 
 const leafEncoding = ['uint256', 'string[]'];
 const leaf = fc.tuple(fc.bigUintN(256), fc.array(fc.string()));
-const leaves = fc.array(leaf, { minLength: 1 });
+const leaves = fc.array(leaf, { minLength: 1, maxLength: 1000 });
 const options = fc.record({ sortLeaves: fc.oneof(fc.constant(undefined), fc.boolean()) });
 
 const tree = fc

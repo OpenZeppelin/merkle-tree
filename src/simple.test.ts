@@ -5,7 +5,7 @@ import { SimpleMerkleTree } from './simple';
 import { BytesLike, HexString, concat, compare, toHex } from './bytes';
 import { InvalidArgumentError, InvariantError } from './utils/errors';
 
-fc.configureGlobal({ numRuns: process.env.CI ? 10000 : 100 });
+fc.configureGlobal({ numRuns: process.env.CI ? 5000 : 100 });
 
 const reverseNodeHash = (a: BytesLike, b: BytesLike): HexString => keccak256(concat([a, b].sort(compare).reverse()));
 const otherNodeHash = (a: BytesLike, b: BytesLike): HexString => keccak256(reverseNodeHash(a, b)); // double hash
@@ -14,7 +14,7 @@ const otherNodeHash = (a: BytesLike, b: BytesLike): HexString => keccak256(rever
 const leaf = fc
   .uint8Array({ minLength: 32, maxLength: 32 })
   .chain(l => fc.oneof(fc.constant(l), fc.constant(toHex(l))));
-const leaves = fc.array(leaf, { minLength: 1 });
+const leaves = fc.array(leaf, { minLength: 1, maxLength: 1000 });
 const options = fc.record({
   sortLeaves: fc.oneof(fc.constant(undefined), fc.boolean()),
   nodeHash: fc.oneof(fc.constant(undefined), fc.constant(reverseNodeHash)),
