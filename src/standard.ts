@@ -32,7 +32,10 @@ export class StandardMerkleTree<T extends any[]> extends MerkleTreeImpl<T> {
   static load<T extends any[]>(data: StandardMerkleTreeData<T>): StandardMerkleTree<T> {
     validateArgument(data.format === 'standard-v1', `Unknown format '${data.format}'`);
     validateArgument(data.leafEncoding !== undefined, 'Expected leaf encoding');
-    return new StandardMerkleTree(data.tree, data.values, data.leafEncoding);
+
+    const tree = new StandardMerkleTree(data.tree, data.values, data.leafEncoding);
+    tree.validate();
+    return tree;
   }
 
   static verify<T extends any[]>(root: BytesLike, leafEncoding: string[], leaf: T, proof: BytesLike[]): boolean {

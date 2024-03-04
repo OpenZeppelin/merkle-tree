@@ -32,7 +32,9 @@ export class SimpleMerkleTree extends MerkleTreeImpl<BytesLike> {
       nodeHash ? 'Data does not expect a custom node hashing function' : 'Data expects a custom node hashing function',
     );
 
-    return new SimpleMerkleTree(data.tree, data.values, formatLeaf, nodeHash);
+    const tree = new SimpleMerkleTree(data.tree, data.values, formatLeaf, nodeHash);
+    tree.validate();
+    return tree;
   }
 
   static verify(root: BytesLike, leaf: BytesLike, proof: BytesLike[], nodeHash?: NodeHash): boolean {
