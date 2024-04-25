@@ -3,6 +3,7 @@ import { HashZero as zero } from '@ethersproject/constants';
 import { keccak256 } from '@ethersproject/keccak256';
 import { StandardMerkleTree } from './standard';
 import { InvalidArgumentError, InvariantError } from './utils/errors';
+import { defaultAbiCoder } from '@ethersproject/abi';
 
 fc.configureGlobal({ numRuns: process.env.CI ? 5000 : 100 });
 
@@ -148,4 +149,29 @@ test('reject malformed tree dump', t => {
       }),
     new InvariantError('Merkle tree is invalid'),
   );
+});
+
+const customEncoderLeaf = fc.tuple(
+  fc.uint8Array({ minLength: 1, maxLength: 1 }),
+  fc.uint8Array({ minLength: 1, maxLength: 1 }),
+);
+const customEncoderLeaves = fc.array(customEncoderLeaf, { minLength: 1, maxLength: 1000 });
+
+testProp('custom encoder', [customEncoderLeaves], (t, customEncoderLeaves) => {
+  const customEncoder = {
+    encode: (types: string[], values: any[]) => {
+      return defaultAbiCoder.encode(types.slice().reverse(), values);
+    },
+  };
+
+  const customEncoderEncoding = ['bytes', 'bytes1'];
+
+  const customEncoderTree = StandardMerkleTree.of(customEncoderLeaves, customEncoderEncoding, {}, customEncoder);
+  const reversedEncodingTree = StandardMerkleTree.of(customEncoderLeaves, customEncoderEncoding.slice().reverse());
+
+  t.deepEqual(customEncoderTree.root, reversedEncodingTree.root);
+
+  const defaultEncodingTree = StandardMerkleTree.of(customEncoderLeaves, customEncoderEncoding);
+
+  t.notDeepEqual(customEncoderTree.root, defaultEncodingTree.root);
 });
