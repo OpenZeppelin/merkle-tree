@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.7
 
 - Added `SimpleMerkleTree` class that supports `bytes32` leaves with no extra hashing.
 - Support custom hashing function for computing internal nodes. Available in the core and in `SimpleMerkleTree`.
