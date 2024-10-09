@@ -8,6 +8,7 @@ export type NodeHash = (left: BytesLike, right: BytesLike) => HexString;
 export function keccak256(input: BytesLike): HexString {
   return toHex(_keccak256(toBytes(input)));
 }
+
 export function standardLeafHash<T extends any[]>(types: string[], value: T): HexString {
   return keccak256(keccak256(encode(types, value)));
 }
