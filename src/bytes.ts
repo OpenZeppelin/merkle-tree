@@ -1,7 +1,11 @@
-import type { BytesLike } from '@ethersproject/bytes';
-type HexString = string;
+import type { BytesLike } from '@metamask/utils';
+type HexString = `0x${string}`;
 
-import { arrayify as toBytes, hexlify as toHex, concat } from '@ethersproject/bytes';
+import {
+  createBytes as toBytes,
+  createHex as toHex,
+  concatBytes as concat,
+} from '@metamask/utils';
 
 function compare(a: BytesLike, b: BytesLike): number {
   const diff = BigInt(toHex(a)) - BigInt(toHex(b));

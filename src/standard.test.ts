@@ -1,8 +1,10 @@
 import { test, testProp, fc } from '@fast-check/ava';
-import { HashZero as zero } from '@ethersproject/constants';
-import { keccak256 } from '@ethersproject/keccak256';
 import { StandardMerkleTree } from './standard';
+import { HexString } from './bytes';
+import { keccak256 } from './hashes';
 import { InvalidArgumentError, InvariantError } from './utils/errors';
+
+const zero: HexString = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
 fc.configureGlobal({ numRuns: process.env.CI ? 5000 : 100 });
 
