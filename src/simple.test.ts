@@ -1,9 +1,10 @@
 import { test, testProp, fc } from '@fast-check/ava';
-import { HashZero as zero } from '@ethersproject/constants';
-import { keccak256 } from '@ethersproject/keccak256';
 import { SimpleMerkleTree } from './simple';
 import { BytesLike, HexString, concat, compare, toHex } from './bytes';
+import { keccak256 } from './hashes';
 import { InvalidArgumentError, InvariantError } from './utils/errors';
+
+const zero: HexString = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
 fc.configureGlobal({ numRuns: process.env.CI ? 5000 : 100 });
 
@@ -149,7 +150,7 @@ testProp('reject loading dump with wrong node hash', [fc.array(leaf, { minLength
 test('reject invalid leaf size', t => {
   const invalidLeaf = '0x000000000000000000000000000000000000000000000000000000000000000000';
   t.throws(() => SimpleMerkleTree.of([invalidLeaf]), {
-    message: `incorrect data length (argument=null, value="${invalidLeaf}", code=INVALID_ARGUMENT, version=abi/5.7.0)`,
+    message: 'Unable to encode value: Expected a value of length 32, but received a value of length 33.',
   });
 });
 

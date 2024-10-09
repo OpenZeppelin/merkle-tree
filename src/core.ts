@@ -36,7 +36,7 @@ export function makeMerkleTree(leaves: BytesLike[], nodeHash: NodeHash = standar
 export function getProof(tree: BytesLike[], index: number): HexString[] {
   checkLeafNode(tree, index);
 
-  const proof = [];
+  const proof: HexString[] = [];
   while (index > 0) {
     proof.push(toHex(tree[siblingIndex(index)]!));
     index = parentIndex(index);
@@ -67,7 +67,7 @@ export function getMultiProof(tree: BytesLike[], indices: number[]): MultiProof<
   );
 
   const stack = Array.from(indices); // copy
-  const proof = [];
+  const proof: HexString[] = [];
   const proofFlags = [];
 
   while (stack.length > 0 && stack[0]! > 0) {
@@ -145,7 +145,7 @@ export function isValidMerkleTree(tree: BytesLike[], nodeHash: NodeHash = standa
   return tree.length > 0;
 }
 
-export function renderMerkleTree(tree: BytesLike[]): HexString {
+export function renderMerkleTree(tree: BytesLike[]): string {
   validateArgument(tree.length !== 0, 'Expected non-zero number of nodes');
 
   const stack: [number, number[]][] = [[0, []]];

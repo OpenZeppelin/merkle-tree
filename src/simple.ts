@@ -1,4 +1,4 @@
-import { defaultAbiCoder } from '@ethersproject/abi';
+import { encode } from '@metamask/abi-utils';
 import { BytesLike, HexString, toHex } from './bytes';
 import { MultiProof, processProof, processMultiProof } from './core';
 import { MerkleTreeData, MerkleTreeImpl } from './merkletree';
@@ -16,7 +16,7 @@ export interface SimpleMerkleTreeOptions extends MerkleTreeOptions {
 }
 
 export function formatLeaf(value: BytesLike): HexString {
-  return defaultAbiCoder.encode(['bytes32'], [value]);
+  return toHex(encode(['bytes32'], [value]));
 }
 
 export class SimpleMerkleTree extends MerkleTreeImpl<BytesLike> {

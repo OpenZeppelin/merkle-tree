@@ -1,5 +1,4 @@
 import { test, testProp, fc } from '@fast-check/ava';
-import { HashZero as zero } from '@ethersproject/constants';
 import {
   makeMerkleTree,
   getProof,
@@ -9,8 +8,10 @@ import {
   isValidMerkleTree,
   renderMerkleTree,
 } from './core';
-import { toHex } from './bytes';
+import { HexString, toHex } from './bytes';
 import { InvalidArgumentError, InvariantError } from './utils/errors';
+
+const zero: HexString = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
 const leaf = fc.uint8Array({ minLength: 32, maxLength: 32 });
 const leaves = fc.array(leaf, { minLength: 1 });
