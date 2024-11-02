@@ -1,27 +1,32 @@
 type Bytes = Uint8Array;
-type BytesLike = ArrayLike<number> | string;
+type BytesLike = readonly number[] | Uint8Array | string;
 type HexString = string;
 
-import { createBytes, createHex, concatBytes, type BytesLike as StrictBytesLike } from '@metamask/utils';
+import { hexToBytes, bytesToHex, concatBytes } from 'ethereum-cryptography/utils';
 
 function toBytes(value: BytesLike): Bytes {
-  if (Array.isArray(value)) {
-    return createBytes(new Uint8Array(value));
+  if (value instanceof Uint8Array) {
+    return value;
+  } else if (typeof value === 'string') {
+    return hexToBytes(value);
   } else {
-    return createBytes(value as StrictBytesLike);
+    return new Uint8Array(value);
   }
 }
 
-function toHex(value: BytesLike): `0x${string}` {
-  if (Array.isArray(value)) {
-    return createHex(new Uint8Array(value));
+function toHex(value: BytesLike): string {
+  if (typeof value === 'string') {
+    hexToBytes(value); // assert hex string
+    return value;
+  } else if (value instanceof Uint8Array) {
+    return bytesToHex(value);
   } else {
-    return createHex(value as StrictBytesLike);
+    return bytesToHex(new Uint8Array(value));
   }
 }
 
 function concat(values: BytesLike[]): Bytes {
-  return concatBytes(values.map(toBytes));
+  return concatBytes(...values.map(toBytes));
 }
 
 function compare(a: BytesLike, b: BytesLike): number {

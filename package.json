@@ -27,7 +27,6 @@
   "license": "MIT",
   "dependencies": {
     "@metamask/abi-utils": "^2.0.4",
-    "@metamask/utils": "^9.3.0",
     "ethereum-cryptography": "^3.0.0"
   },
   "devDependencies": {
