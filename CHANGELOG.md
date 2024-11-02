@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.8
+
+- Remove dependencies with advisories.
+
 ## 1.0.7
 
 - Added `SimpleMerkleTree` class that supports `bytes32` leaves with no extra hashing.
