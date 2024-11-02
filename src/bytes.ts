@@ -19,9 +19,9 @@ function toHex(value: BytesLike): string {
     hexToBytes(value); // assert hex string
     return value;
   } else if (value instanceof Uint8Array) {
-    return bytesToHex(value);
+    return '0x' + bytesToHex(value);
   } else {
-    return bytesToHex(new Uint8Array(value));
+    return '0x' + bytesToHex(new Uint8Array(value));
   }
 }
 
