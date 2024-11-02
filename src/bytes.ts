@@ -14,10 +14,10 @@ function toBytes(value: BytesLike): Bytes {
   }
 }
 
-function toHex(value: BytesLike): string {
+function toHex(value: BytesLike): HexString {
   if (typeof value === 'string') {
     hexToBytes(value); // assert hex string
-    return value;
+    return value.replace(/^(0x)?/, '0x');
   } else if (value instanceof Uint8Array) {
     return '0x' + bytesToHex(value);
   } else {

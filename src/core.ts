@@ -145,7 +145,7 @@ export function isValidMerkleTree(tree: BytesLike[], nodeHash: NodeHash = standa
   return tree.length > 0;
 }
 
-export function renderMerkleTree(tree: BytesLike[]): string {
+export function renderMerkleTree(tree: BytesLike[]): HexString {
   validateArgument(tree.length !== 0, 'Expected non-zero number of nodes');
 
   const stack: [number, number[]][] = [[0, []]];
