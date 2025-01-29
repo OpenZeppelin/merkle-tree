@@ -26,10 +26,8 @@
   "author": "Francisco Giordano <fg@frang.io>",
   "license": "MIT",
   "dependencies": {
-    "@ethersproject/abi": "^5.7.0",
-    "@ethersproject/bytes": "^5.7.0",
-    "@ethersproject/constants": "^5.7.0",
-    "@ethersproject/keccak256": "^5.7.0"
+    "@metamask/abi-utils": "^2.0.4",
+    "ethereum-cryptography": "^3.0.0"
   },
   "devDependencies": {
     "@fast-check/ava": "^1.2.1",
